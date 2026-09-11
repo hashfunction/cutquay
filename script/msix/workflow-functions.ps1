@@ -24,10 +24,11 @@ function Invoke-WorkflowNative([Collections.IDictionary]$State,[string]$Name,[st
     $stdout=$candidate.StandardOutput.ReadToEndAsync();$stderr=$candidate.StandardError.ReadToEndAsync()
     $actualPackage=Get-CutQuayProcessPackageName $candidate
     if($actualPackage -cne [string]$State.installed.PackageFullName){throw 'Workflow media lacks exact installed package identity.'}
-    if((Get-CanonicalPath $candidate.MainModule.FileName) -ine (Get-CanonicalPath $executable)){throw 'Workflow media executable differs from installed path.'}
+    $actualImage=Get-CutQuayProcessImageName $candidate
+    if((Get-CanonicalPath $actualImage) -ine (Get-CanonicalPath $executable)){throw 'Workflow media executable differs from installed path.'}
     if(-not $candidate.WaitForExit(60000)){throw "Workflow $Label timed out."}
     $out=$stdout.GetAwaiter().GetResult();$err=$stderr.GetAwaiter().GetResult()
-    $receipt=[ordered]@{program=$relative;executable_sha256=$hash;arguments=$Arguments;package_full_name=$actualPackage;exit_code=$candidate.ExitCode;stdout=$out;stderr=$err}
+    $receipt=[ordered]@{program=$relative;executable_sha256=$hash;process_image_path=$actualImage;arguments=$Arguments;package_full_name=$actualPackage;exit_code=$candidate.ExitCode;stdout=$out;stderr=$err}
     try{Write-NewUtf8Json (Join-Path $State.output ($Label+'-native.json')) $receipt}catch{throw "Native workflow reporting failed: $($_.Exception.Message); command exit: $($candidate.ExitCode); stderr: $err"}
     if($candidate.ExitCode -ne 0){throw "Workflow $Label failed with $($candidate.ExitCode): $err"}
     foreach($row in $mediaRows){$null=Assert-FileMatchesRecord (Join-Path $State.installed.InstallLocation $row.Name) $row.Value $row.Name}

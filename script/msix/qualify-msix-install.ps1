@@ -119,6 +119,26 @@ namespace CutQuayQualification {
     }
 
     public static class NativePackageProbe {
+        [DllImport("kernel32.dll", EntryPoint="QueryFullProcessImageNameW", CharSet=CharSet.Unicode,
+            ExactSpelling=true, SetLastError=true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryFullProcessImageName(
+            Microsoft.Win32.SafeHandles.SafeProcessHandle process, uint flags,
+            StringBuilder executableName, ref uint length);
+
+        public static string GetImageName(Microsoft.Win32.SafeHandles.SafeProcessHandle process) {
+            if (process == null || process.IsClosed || process.IsInvalid)
+                throw new InvalidOperationException("A valid retained process handle is required for image observation.");
+            var value = new StringBuilder(32768);
+            uint length = (uint)value.Capacity;
+            if (!QueryFullProcessImageName(process, 0, value, ref length))
+                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(),
+                    "QueryFullProcessImageNameW failed for the retained process handle.");
+            if (length == 0 || length >= value.Capacity)
+                throw new InvalidOperationException("Invalid image name from retained process handle.");
+            return value.ToString();
+        }
+
         private const int ERROR_SUCCESS = 0;
         private const int ERROR_INSUFFICIENT_BUFFER = 122;
         [DllImport("kernel32.dll", CharSet=CharSet.Unicode)]
@@ -246,6 +266,13 @@ function Wait-OwnedPackageExit([Collections.IDictionary]$State) {
     foreach ($owned in @($State.ownedProcesses)) {
         if (-not $owned.HasExited -and -not $owned.WaitForExit(10000)) { throw "Owned Electron child remains after normal close: $($owned.Id)" }
     }
+}
+
+function Get-CutQuayProcessImageName([Diagnostics.Process]$Process) {
+    Add-CutQuayActivationTypes
+    # Query the original process object, not a PID reopened after possible exit.
+    # MainModule enumerates a module list that termination has already removed.
+    return [CutQuayQualification.NativePackageProbe]::GetImageName($Process.SafeHandle)
 }
 
 function Get-CutQuayProcessPackageName([Diagnostics.Process]$Process) {

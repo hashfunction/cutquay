@@ -1,5 +1,6 @@
-# Copyright 2026 Trieflow LLC. MIT. Real worker/pipe-free handshake tests. Only the
-# Windows package launcher and GetPackageFullName API are substituted on macOS.
+# Copyright 2026 Trieflow LLC. MIT. Real worker/pipe-free handshake tests.
+# Package launch/identity are fixture adapters; image observation uses the real
+# retained-handle Windows API on Windows, with an explicit adapter on macOS.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'qualify-msix-install.ps1') -LibraryOnly
@@ -39,6 +40,11 @@ function Get-CutQuayProcessPackageName { return 'Fixture.Package' }
 function Test-InstalledMedia { return @(1..4 | ForEach-Object { [ordered]@{exit_code=0;configuration_verified=$true} }) }
 '@
     if ($script:scenario -in @('native-media','workflow-generate')) { $injection = "function Get-CutQuayProcessPackageName { return 'Fixture.Package' }" }
+    if (-not $IsWindows -and $script:scenario -eq 'workflow-generate') {
+        # The retained-handle Windows image API is not available on macOS.
+        # Native Windows scenarios execute the unmodified production query.
+        $injection += "`nfunction Get-CutQuayProcessImageName(`$Process) { return `$Process.StartInfo.FileName }`n"
+    }
     if ($script:scenario -in @('worker-cleanup-error','worker-reporting-error')) { $injection += @'
 function Test-InstalledMedia([Collections.IDictionary]$State) {
     $State.mediaProcess=[pscustomobject]@{HasExited=$false}

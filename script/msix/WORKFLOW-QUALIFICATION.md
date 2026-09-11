@@ -46,6 +46,46 @@ Primary protocol references:
 - https://chromedevtools.github.io/devtools-protocol/tot/Input/
 - https://chromedevtools.github.io/devtools-protocol/tot/SystemInfo/
 
+## Short-lived native process observation repair
+
+Windows run `34637266629`, source `401aadad3d27252d5ad679b51e5afc3c5073ef87`,
+failed in the required real media fixture before installation: the production
+`Invoke-WorkflowNative` queried `MainModule.FileName` after FFprobe could exit.
+Its module list was gone, yielding the missing `FileName` property error.
+The regression forces each actual native command to finish before image
+observation and reproduces that same failure against the preceding source.
+
+The executable name now comes from `QueryFullProcessImageNameW` through the
+original retained `SafeProcessHandle`, and the receipt retains that observed
+path. There is no PID reopen or requested-path fallback in production. The exact
+installed executable path, package identity, before/after executable and media
+DLL hashes, exit code, output, error and owned cleanup checks remain required.
+An invalid handle, query error, foreign image or foreign package fails closed.
+The broker's persistent consumer UI process checks are unchanged.
+
+The updated real media fixture generates, probes and decodes actual H.264/AAC,
+forces all three commands to exit before the image query, rejects wrong package,
+wrong path and image-query failures without success receipts, and exercises
+the actual C# invalid-handle rejection. On macOS only the unavailable Windows
+image API is adapted; the fixture package-identity adapter is explicit on both
+platforms. The Windows test uses the production image API after termination.
+Nine real worker scenarios, the owned-process/foreign-process fixture, six
+installation orchestration scenarios and the actual failed-start fixture also
+passed locally with PowerShell 7.6.6 and Homebrew FFmpeg 9.0.1. Actual Windows
+post-exit image observation and installed workflow acceptance still require a
+fresh native run; local adapters establish neither fact.
+
+Primary Windows API/lifetime references:
+- https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-queryfullprocessimagenamew
+- https://learn.microsoft.com/en-us/windows/win32/procthread/terminating-a-process
+- https://learn.microsoft.com/en-us/windows/win32/api/appmodel/nf-appmodel-getpackagefullname
+
+The first API queries an image name from an authorized process handle. Windows
+retains the process object while handles remain open, although its executable
+code and module list have been removed at termination. These references explain
+the API choice; the required Windows regression must establish its actual
+post-exit behavior in the qualification environment.
+
 ## Local verification and execution handoff
 
 Run the focused checks from the committed source root:
@@ -72,7 +112,8 @@ specified. The CDP and DOM tests do not claim actual Windows input delivery.
 The expanded nine subprocess-worker scenarios include actual fixture generation
 through the real handshake/authorization/result path, plus native versions,
 identity rejection, timeout and combined operation/cleanup/publication failures.
-Only unavailable Windows launch/package-identity APIs are adapted locally.
+Package launch/identity are explicit fixture adapters. The unavailable Windows
+image query is adapted only locally; Windows uses its real retained-handle API.
 Listener tests reject absent, foreign-PID and broad-address listeners; a real
 owned driver process is terminated while a separate foreign process survives.
 Existing 113 feature tests passed, as did 31 Python package tests with the one
