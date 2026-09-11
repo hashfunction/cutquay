@@ -133,6 +133,10 @@ async function runUi(request) {
     steps.push({ action: 'file-drop', path: media });
     await wait(async () => { const value = await inspect({ kind: 'snapshot' }); return value.video.some((v) => { try { return winCanonical(decodeURIComponent(new URL(v.src).pathname).replace(/^\/([A-Za-z]:)/, '$1')) === winCanonical(media) && v.readyState >= 1 && !v.error && v.duration > 0; } catch { return false; } }); }, 'imported actual media element');
     if (request.phase === 'export') {
+      // A fresh profile starts in simple view, where manual trim inputs are
+      // absent. Use the exposed consumer toggle before entering exact times.
+      const trimView = await inspect({ kind: 'snapshot' });
+      if (!trimView.inputs.some((i) => i.title === "Manually input current segment's start time")) await click({ selector: '[role="button"]', text: 'Toggle advanced view' });
       await input('input[title="Manually input current segment\'s start time"]', '00:00:02.000', true);
       await input('input[title="Manually input current segment\'s end time"]', '00:00:05.000', true);
       await wait(async () => { const view = await inspect({ kind: 'snapshot' }); return view.inputs.some((i) => i.title.endsWith('start time') && i.value === '00:00:02.000') && view.inputs.some((i) => i.title.endsWith('end time') && i.value === '00:00:05.000'); }, 'committed trim values');

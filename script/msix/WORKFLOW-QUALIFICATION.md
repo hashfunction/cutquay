@@ -153,3 +153,13 @@ logs are retained under ignored `build-evidence/workflow-*`. A real Windows run
 at the final commit must establish broker arguments/DevTools availability,
 actual input delivery, save/apply/trim/export/reopen and normal lifecycle. No
 result from the prior startup-only run establishes these new facts.
+# Fresh-profile view selection
+
+Run 34643457961 successfully loaded the eight-second fixture through the
+installed consumer UI, then correctly failed because simple view hides the
+manual trim fields. The external driver now checks the rendered start-time
+field and, when absent, clicks the visible **Toggle advanced view** control.
+It still requires exposed, enabled trim fields before entering the requested
+2–5 second range. This changes only test navigation and leaves source defaults
+unchanged. The normal toggle may save its view preference; the driver does not
+edit configuration files directly.
