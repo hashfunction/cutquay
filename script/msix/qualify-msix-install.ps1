@@ -13,10 +13,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'workflow-functions.ps1')
 
 function Invoke-CutQuayQualificationCore([Collections.IDictionary]$Operations) {
     $required = @(
-        'Preflight','PrepareSignedCopy','Install','VerifyInstalledMedia','CaptureInstalledStderr','ActivateAndVerify','CloseCleanly','UninstallAndVerify',
+        'Preflight','PrepareSignedCopy','Install','VerifyInstalledMedia','CaptureInstalledStderr','ActivateAndVerify','CloseCleanly','QualifyExportWorkflow','UninstallAndVerify',
         'StopOwnedProcess','RemoveOwnedPackage','RemoveTrustedCertificate','RemovePersonalCertificate','RemoveTemporaryFiles'
     )
     foreach ($name in $required) {
@@ -27,7 +28,7 @@ function Invoke-CutQuayQualificationCore([Collections.IDictionary]$Operations) {
     $primaryError = $null
     $cleanupErrors = [Collections.Generic.List[string]]::new()
     try {
-        foreach ($name in @('Preflight','PrepareSignedCopy','Install','VerifyInstalledMedia','CaptureInstalledStderr','ActivateAndVerify','CloseCleanly','UninstallAndVerify')) {
+        foreach ($name in @('Preflight','PrepareSignedCopy','Install','VerifyInstalledMedia','CaptureInstalledStderr','ActivateAndVerify','CloseCleanly','QualifyExportWorkflow','UninstallAndVerify')) {
             # Native tools such as SignTool emit stdout. Keep it in the host
             # log without turning this function's structured result into an array.
             & $Operations[$name] | Out-Host
@@ -106,10 +107,11 @@ namespace CutQuayQualification {
     }
 
     public static class ActivationBroker {
-        public static uint Activate(string appUserModelId) {
+        public static uint Activate(string appUserModelId) { return Activate(appUserModelId, null); }
+        public static uint Activate(string appUserModelId, string arguments) {
             var manager = (IApplicationActivationManager)new ApplicationActivationManagerClass();
             uint processId;
-            int result = manager.ActivateApplication(appUserModelId, null, 0, out processId);
+            int result = manager.ActivateApplication(appUserModelId, arguments, 0, out processId);
             if (result < 0) Marshal.ThrowExceptionForHR(result);
             if (processId == 0) throw new InvalidOperationException("Activation broker returned process ID zero.");
             return processId;
@@ -283,7 +285,9 @@ function Invoke-CutQuayMediaWorker([string]$InputPath, [string]$InputSha256) {
         }
         $approved=Get-Content -LiteralPath $authorization -Raw -Encoding utf8 | ConvertFrom-Json
         if ($approved.nonce -cne $request.nonce -or $approved.process_id -ne $current.Id -or $approved.start_ticks -ne $current.StartTime.ToUniversalTime().Ticks) { throw 'Media worker authorization identity mismatch.' }
-        $results=@(Test-InstalledMedia $state)
+        if ($request.PSObject.Properties['workflow'] -and $request.workflow) {
+            $results=@(Test-WorkflowMedia $state $request.workflow)
+        } else { $results=@(Test-InstalledMedia $state) }
     } catch { $primary=$_.Exception.Message }
     finally {
         if ($state.mediaProcess) {
@@ -323,14 +327,29 @@ function Assert-NoMediaWorkerReportingFailure([string]$InputPath, [string]$Nonce
     throw "Media worker failed. Primary: $($failure.primary_error); cleanup: $($failure.cleanup_errors -join '; '); reporting: $($failure.reporting_error)"
 }
 
-function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [ValidateRange(1,300)][int]$TimeoutSeconds=150) {
+function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [ValidateRange(1,300)][int]$TimeoutSeconds=150, [object]$Workflow=$null) {
+    # Sequential fixed workflow operations must never inherit an earlier
+    # worker handle as evidence of ownership for a new unverified candidate.
+    if($State.mediaWorkerProcess){
+        if(-not $State.mediaWorkerProcess.HasExited){throw 'Prior owned media worker is still running.'}
+        $State.mediaWorkerProcess.Dispose();$State.mediaWorkerProcess=$null
+    }
     # This debugging shell has the installed package token; it is not part of the
     # native payload and its modules are not counted as application modules.
     $runner=(Get-Process -Id $PID).Path
     $helper=Join-Path $PSScriptRoot 'qualify-msix-install.ps1'
     $nonce=[guid]::NewGuid().ToString('N')
-    $inputPath=Join-Path $State.temporary 'media-worker-input.json'
-    Write-NewUtf8Json $inputPath ([ordered]@{nonce=$nonce;installed=[ordered]@{InstallLocation=$State.installed.InstallLocation;PackageFullName=$State.installed.PackageFullName};output=$State.output;record=$State.record})
+    $workerOutput=$State.output
+    $inputName='media-worker-input.json'
+    if($Workflow){
+        if($Workflow.mode -cnotin @('generate','verify')){throw 'Unexpected fixed workflow worker mode.'}
+        $workerOutput=Join-Path $State.output ($Workflow.mode+'-media')
+        if(Test-Path -LiteralPath $workerOutput){throw 'Workflow worker evidence directory already exists.'}
+        New-Item -ItemType Directory $workerOutput | Out-Null
+        $inputName=$Workflow.mode+'-media-worker-input.json'
+    }
+    $inputPath=Join-Path $State.temporary $inputName
+    Write-NewUtf8Json $inputPath ([ordered]@{nonce=$nonce;installed=[ordered]@{InstallLocation=$State.installed.InstallLocation;PackageFullName=$State.installed.PackageFullName};output=$workerOutput;record=$State.record;workflow=$Workflow})
     $inputHash=(Get-FileHash -LiteralPath $inputPath -Algorithm SHA256).Hash.ToLowerInvariant()
     # Encode a fixed script with single-quoted literal paths. No command-shell
     # expansion, string argument splitting, or environment-dependent executable.
@@ -338,8 +357,8 @@ function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [Valida
     $arguments='-NoLogo -NoProfile -NonInteractive -EncodedCommand ' + [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($body))
     $started=[DateTime]::UtcNow
     Invoke-CommandInDesktopPackage -PackageFamilyName $State.installed.PackageFamilyName -AppId 'CutQuay' -Command $runner -Args $arguments -PreventBreakaway -ErrorAction Stop | Out-Host
-    $readyPath=Join-Path $State.output 'media-worker-ready.json'
-    $resultPath=Join-Path $State.output 'media-worker-result.json'
+    $readyPath=Join-Path $workerOutput 'media-worker-ready.json'
+    $resultPath=Join-Path $workerOutput 'media-worker-result.json'
     $deadline=[DateTime]::UtcNow.AddSeconds(30)
     while (-not (Test-Path -LiteralPath $readyPath)) {
         Assert-NoMediaWorkerReportingFailure $inputPath $nonce $inputHash
@@ -365,10 +384,10 @@ function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [Valida
     } finally { if (-not $State.mediaWorkerProcess) { $candidate.Dispose() } }
     $State.mediaWorkerEvidence=[ordered]@{
         process_id=$candidate.Id; start_ticks=$ready.start_ticks; executable=$runner; package_full_name=$packageName
-        input_sha256=$inputHash; helper_sha256=(Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant()
+        input_sha256=$inputHash; helper_sha256=(Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant(); workflow_helper_sha256=(Get-FileHash (Join-Path $PSScriptRoot 'workflow-functions.ps1') -Algorithm SHA256).Hash.ToLowerInvariant()
         clean_exit_verified=$false; exit_code=$null
     }
-    Write-WorkerJson (Join-Path $State.output 'media-worker-authorized.json') ([ordered]@{nonce=$nonce;process_id=$candidate.Id;start_ticks=$ready.start_ticks})
+    Write-WorkerJson (Join-Path $workerOutput 'media-worker-authorized.json') ([ordered]@{nonce=$nonce;process_id=$candidate.Id;start_ticks=$ready.start_ticks})
     if (-not $candidate.WaitForExit($TimeoutSeconds * 1000)) { throw 'Owned media worker timed out.' }
     $State.mediaWorkerEvidence.exit_code=$candidate.ExitCode
     Assert-NoMediaWorkerReportingFailure $inputPath $nonce $inputHash
@@ -376,7 +395,8 @@ function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [Valida
     $result=Get-Content -LiteralPath $resultPath -Raw -Encoding utf8 | ConvertFrom-Json
     if ($result.nonce -cne $nonce -or $result.input_sha256 -cne $inputHash -or $result.package_full_name -cne $packageName) { throw 'Media worker result identity mismatch.' }
     if ($candidate.ExitCode -ne 0 -or $result.primary_error -or $result.cleanup_errors.Count) { throw "Media worker failed with $($candidate.ExitCode). Primary: $($result.primary_error); cleanup: $($result.cleanup_errors -join '; ')" }
-    if ($result.installed_media.Count -ne 4) { throw 'Media worker did not complete all four installed checks.' }
+    if($Workflow){if($result.installed_media.Count -ne 1){throw 'Media worker did not complete its fixed workflow operation.'}}
+    elseif ($result.installed_media.Count -ne 4) { throw 'Media worker did not complete all four installed checks.' }
     $State.mediaWorkerEvidence.clean_exit_verified=$true
     return $result.installed_media
 }
@@ -432,7 +452,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         unsignedPackageSha256 = $null; signedPackageSha256 = $null; signTool = $null
         aumid = $null; processPackageFullName = $null; modules = @(); window = $null
         executableSha256 = $null; media = @(); ownedProcesses = [Collections.Generic.List[Diagnostics.Process]]::new(); activationStarted = $null; mediaProcess = $null
-        mediaWorkerProcess = $null; mediaWorkerEvidence = $null
+        mediaWorkerProcess = $null; mediaWorkerEvidence = $null; workflowDriver=$null; workflowEvidence=$null
         diagnosticPackageFullName = $null; diagnosticStderr = $null
         diagnosticCleanClose = $false; cleanClose = $false; uninstallVerified = $false
     }
@@ -645,6 +665,11 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         $state.cleanClose = $true
     }.GetNewClosure()
 
+    $operations.QualifyExportWorkflow = {
+        Invoke-InstalledExportWorkflow $state
+        if(-not $state.workflowEvidence -or -not $state.workflowEvidence.passed){throw 'Consumer export workflow did not establish acceptance.'}
+    }.GetNewClosure()
+
     $operations.UninstallAndVerify = {
         if (-not $state.installedByUs -or -not $state.ownedPackageFullName) { throw 'Exact installed package ownership was not established.' }
         Remove-AppxPackage -Package $state.ownedPackageFullName -ErrorAction Stop
@@ -656,6 +681,9 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         $errors = [Collections.Generic.List[string]]::new()
         if ($state.installed) {
             try { Update-OwnedPackageProcesses $state } catch { $errors.Add($_.Exception.Message) }
+        }
+        if ($state.workflowDriver) {
+            try { if(-not $state.workflowDriver.HasExited){$state.workflowDriver.Kill();if(-not $state.workflowDriver.WaitForExit(10000)){throw 'Owned workflow driver did not stop.'}} } catch {$errors.Add($_.Exception.Message)}
         }
         if ($state.mediaWorkerProcess) {
             try {
@@ -770,7 +798,8 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         uninstall_verified = $state.uninstallVerified
         installation_qualification_passed = $qualificationPassed
         workflow_acceptance = $false
-        export_workflow_tested = $false
+        export_workflow_tested = [bool]($state.workflowEvidence -and $state.workflowEvidence.passed)
+        consumer_export_workflow = $state.workflowEvidence
         upgrade_tested = $false
         wack_tested = $false
         store_identity_used = $false

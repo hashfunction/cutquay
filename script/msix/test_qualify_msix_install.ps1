@@ -11,7 +11,7 @@ function Assert-True([bool]$Condition, [string]$Message) {
 function New-FakeOperations([string]$PrimaryFailure, [string[]]$CleanupFailures, [switch]$Noisy) {
     $global:CutQuayQualificationTestCalls = [Collections.Generic.List[string]]::new()
     $operations = [ordered]@{}
-    foreach ($name in @('Preflight','PrepareSignedCopy','Install','VerifyInstalledMedia','CaptureInstalledStderr','ActivateAndVerify','CloseCleanly','UninstallAndVerify')) {
+    foreach ($name in @('Preflight','PrepareSignedCopy','Install','VerifyInstalledMedia','CaptureInstalledStderr','ActivateAndVerify','CloseCleanly','QualifyExportWorkflow','UninstallAndVerify')) {
         $operationName = $name
         $operations[$name] = {
             $global:CutQuayQualificationTestCalls.Add($operationName)
@@ -34,7 +34,7 @@ $result = Invoke-CutQuayQualificationCore -Operations (New-FakeOperations '' @()
 Assert-True $result.installation_qualification_passed 'success path must pass'
 Assert-True (-not $result.primary_error) 'success path must have no primary error'
 Assert-True ($result.cleanup_errors.Count -eq 0) 'success path must have no cleanup errors'
-Assert-True (($global:CutQuayQualificationTestCalls -join ',') -eq 'Preflight,PrepareSignedCopy,Install,VerifyInstalledMedia,CaptureInstalledStderr,ActivateAndVerify,CloseCleanly,UninstallAndVerify,StopOwnedProcess,RemoveOwnedPackage,RemoveTrustedCertificate,RemovePersonalCertificate,RemoveTemporaryFiles') 'all qualification and cleanup steps must run in order'
+Assert-True (($global:CutQuayQualificationTestCalls -join ',') -eq 'Preflight,PrepareSignedCopy,Install,VerifyInstalledMedia,CaptureInstalledStderr,ActivateAndVerify,CloseCleanly,QualifyExportWorkflow,UninstallAndVerify,StopOwnedProcess,RemoveOwnedPackage,RemoveTrustedCertificate,RemovePersonalCertificate,RemoveTemporaryFiles') 'all qualification and cleanup steps must run in order'
 
 $result = Invoke-CutQuayQualificationCore -Operations (New-FakeOperations 'ActivateAndVerify' @('RemoveOwnedPackage','RemovePersonalCertificate'))
 Assert-True (-not $result.installation_qualification_passed) 'primary and cleanup failure must fail'
@@ -102,3 +102,10 @@ Assert-True ($null -ne ('CutQuayQualification.NativePackageProbe' -as [type])) '
 
 Remove-Variable CutQuayQualificationTestCalls -Scope Global
 Write-Output 'PASS: 6 installation orchestration scenarios plus path/evidence/native-helper checks.'
+
+$result=Invoke-CutQuayQualificationCore -Operations (New-FakeOperations 'QualifyExportWorkflow' @('RemoveOwnedPackage'))
+Assert-True (-not $result.installation_qualification_passed) 'workflow failure must fail installation qualification'
+Assert-True ($result.primary_error -ceq 'primary:QualifyExportWorkflow') 'workflow error must survive cleanup'
+Assert-True ($result.cleanup_errors.Count -eq 1) 'workflow failure must retain cleanup error'
+Assert-True (-not ($global:CutQuayQualificationTestCalls -contains 'UninstallAndVerify')) 'failed workflow cannot reach normal acceptance'
+Remove-Variable CutQuayQualificationTestCalls -Scope Global

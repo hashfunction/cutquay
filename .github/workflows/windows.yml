@@ -37,5 +37,8 @@ jobs:
             build-evidence/msix-install/*.txt
             build-evidence/msix-install/*.log
             build-evidence/msix-install/*.png
+            build-evidence/msix-install/*-media/*.json
+            build-evidence/msix-install/workflow-*/*.json
+            build-evidence/msix-install/workflow-*/*.png
           retention-days: 14
           if-no-files-found: error

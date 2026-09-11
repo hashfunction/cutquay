@@ -38,7 +38,7 @@ function Invoke-CommandInDesktopPackage {
 function Get-CutQuayProcessPackageName { return 'Fixture.Package' }
 function Test-InstalledMedia { return @(1..4 | ForEach-Object { [ordered]@{exit_code=0;configuration_verified=$true} }) }
 '@
-    if ($script:scenario -eq 'native-media') { $injection = "function Get-CutQuayProcessPackageName { return 'Fixture.Package' }" }
+    if ($script:scenario -in @('native-media','workflow-generate')) { $injection = "function Get-CutQuayProcessPackageName { return 'Fixture.Package' }" }
     if ($script:scenario -in @('worker-cleanup-error','worker-reporting-error')) { $injection += @'
 function Test-InstalledMedia([Collections.IDictionary]$State) {
     $State.mediaProcess=[pscustomobject]@{HasExited=$false}
@@ -59,8 +59,8 @@ function Test-InstalledMedia([Collections.IDictionary]$State) {
     $script:child=[Diagnostics.Process]::Start($info)
     $null=$script:child.Handle
 }
-foreach ($script:scenario in @('success','native-media','worker-error','worker-cleanup-error','worker-reporting-error','wrong-parent-identity','wrong-parent-executable','worker-timeout')) {
-    $temporary=Join-Path ([IO.Path]::GetTempPath()) ('cutquay-worker-test-'+[guid]::NewGuid().ToString('N'))
+foreach ($script:scenario in @('success','native-media','workflow-generate','worker-error','worker-cleanup-error','worker-reporting-error','wrong-parent-identity','wrong-parent-executable','worker-timeout')) {
+    $temporary=Join-Path $(if($IsWindows){[IO.Path]::GetTempPath()}else{'/private/tmp'}) ('cutquay-worker-test-'+[guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory $temporary | Out-Null
     $inputDirectory=Join-Path $temporary 'inputs'
     $outputDirectory=Join-Path $temporary 'outputs'
@@ -69,7 +69,7 @@ foreach ($script:scenario in @('success','native-media','worker-error','worker-c
         installed=[pscustomobject]@{PackageFullName='Fixture.Package';PackageFamilyName='Fixture.Family';InstallLocation=$temporary}
         temporary=$inputDirectory;output=$outputDirectory;record=[pscustomobject]@{};mediaWorkerProcess=$null;mediaWorkerEvidence=$null
     }
-    if ($script:scenario -eq 'native-media') {
+    if ($script:scenario -in @('native-media','workflow-generate')) {
         New-Item -ItemType Directory (Join-Path $temporary 'resources') | Out-Null
         if ($IsWindows) {
             foreach ($file in Get-ChildItem (Join-Path $PSScriptRoot '../../ffmpeg/win32-x64/lib') -File) { [IO.File]::Copy($file.FullName, (Join-Path $temporary "resources/$($file.Name)"), $false) }
@@ -94,9 +94,15 @@ foreach ($script:scenario in @('success','native-media','worker-error','worker-c
         $state.record=[pscustomobject]@{payload=[pscustomobject]$payload;runtime=[pscustomobject]@{media=[pscustomobject]@{version=$version;configuration=$configuration}}}
     }
     try {
-        $failure=$null; $results=@()
-        try { $timeout=if ($script:scenario -eq 'worker-timeout') { 2 } else { 30 }; $results=@(Invoke-InstalledMediaInPackage $state -TimeoutSeconds $timeout) } catch { $failure=$_.Exception.Message }
-        if ($script:scenario -in @('success','native-media')) {
+        $failure=$null; $results=@(); $workflow=$null
+        if($script:scenario -eq 'workflow-generate'){
+            $mediaRoot=Join-Path $temporary 'media';New-Item -ItemType Directory $mediaRoot | Out-Null
+            $workflow=[pscustomobject]@{mode='generate';work=$mediaRoot;fixture=(Join-Path $mediaRoot 'source.mp4');output=$null;inputSha256=$null;outputSha256=$null}
+        }
+        try { $timeout=if ($script:scenario -eq 'worker-timeout') { 2 } else { 30 }; $results=@(Invoke-InstalledMediaInPackage $state -TimeoutSeconds $timeout -Workflow $workflow) } catch { $failure=$_.Exception.Message }
+        if($script:scenario -eq 'workflow-generate'){
+            if($failure -or $results.Count -ne 1 -or -not $results[0].generated -or -not $state.mediaWorkerEvidence.clean_exit_verified -or (Get-FileHash $workflow.fixture).Hash.ToLowerInvariant() -cne $results[0].input.sha256){throw "Actual fixed worker fixture failed: $failure"}
+        } elseif ($script:scenario -in @('success','native-media')) {
             if ($failure -or $results.Count -ne 4 -or -not $state.mediaWorkerEvidence.clean_exit_verified -or $state.mediaWorkerEvidence.exit_code -ne 0) { throw "Worker success failed: $failure" }
         } elseif ($script:scenario -in @('worker-error','worker-cleanup-error','worker-reporting-error')) {
             if ($failure -notmatch 'fixture media operation failed' -or -not $state.mediaWorkerProcess.HasExited) { throw "Worker failure was lost: $failure" }
