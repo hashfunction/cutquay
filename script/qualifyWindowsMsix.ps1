@@ -13,6 +13,8 @@ Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_qu
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_msix_evidence.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_registration_ownership.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_installed_media.ps1')
+Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_media_failed_start.ps1')
+Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_package_media.ps1')
 $sourceCommit = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceCommit -cne $env:GITHUB_SHA) { throw 'Source commit differs from this qualification run.' }
 $baseline = Get-Content build-evidence/windows-startup.json -Raw | ConvertFrom-Json

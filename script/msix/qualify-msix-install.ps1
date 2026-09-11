@@ -246,6 +246,119 @@ function Wait-OwnedPackageExit([Collections.IDictionary]$State) {
     }
 }
 
+function Get-CutQuayProcessPackageName([Diagnostics.Process]$Process) {
+    Add-CutQuayActivationTypes
+    return [CutQuayQualification.NativePackageProbe]::GetFullName($Process.Handle)
+}
+
+function Write-WorkerJson([string]$Path, [object]$Value) {
+    # Publish complete handshake/evidence bytes; a reader must never observe a
+    # partially written JSON document. Neither path replaces an existing file.
+    $pending = $Path + '.writing-' + [guid]::NewGuid().ToString('N')
+    Write-NewUtf8Json $pending $Value
+    [IO.File]::Move($pending, $Path)
+}
+
+function Invoke-CutQuayMediaWorker([string]$InputPath, [string]$InputSha256) {
+    $inputFile = Get-Item -LiteralPath $InputPath
+    $null = Assert-FileMatchesRecord $InputPath ([pscustomobject]@{bytes=$inputFile.Length;sha256=$InputSha256}) 'Media worker input'
+    $request = Get-Content -LiteralPath $InputPath -Raw -Encoding utf8 | ConvertFrom-Json
+    $state = [ordered]@{
+        installed=$request.installed; output=$request.output; record=$request.record; mediaProcess=$null
+    }
+    $primary=$null; $cleanupErrors=[Collections.Generic.List[string]]::new(); $results=@(); $context=$null
+    try {
+        $current=[Diagnostics.Process]::GetCurrentProcess()
+        $context=Get-CutQuayProcessPackageName $current
+        if ($context -cne [string]$request.installed.PackageFullName) { throw 'Media worker lacks the exact package identity.' }
+        Write-WorkerJson (Join-Path $request.output 'media-worker-ready.json') ([ordered]@{
+            nonce=$request.nonce; process_id=$current.Id; start_ticks=$current.StartTime.ToUniversalTime().Ticks
+            package_full_name=$context; input_sha256=$InputSha256
+        })
+        $authorization=Join-Path $request.output 'media-worker-authorized.json'
+        $deadline=[DateTime]::UtcNow.AddSeconds(15)
+        while (-not (Test-Path -LiteralPath $authorization)) {
+            if ([DateTime]::UtcNow -ge $deadline) { throw 'Media worker was not authorized by its observing parent.' }
+            Start-Sleep -Milliseconds 100
+        }
+        $approved=Get-Content -LiteralPath $authorization -Raw -Encoding utf8 | ConvertFrom-Json
+        if ($approved.nonce -cne $request.nonce -or $approved.process_id -ne $current.Id -or $approved.start_ticks -ne $current.StartTime.ToUniversalTime().Ticks) { throw 'Media worker authorization identity mismatch.' }
+        $results=@(Test-InstalledMedia $state)
+    } catch { $primary=$_.Exception.Message }
+    finally {
+        if ($state.mediaProcess) {
+            try {
+                if (-not $state.mediaProcess.HasExited) {
+                    $state.mediaProcess.Kill()
+                    if (-not $state.mediaProcess.WaitForExit(10000)) { throw 'Owned media probe did not stop.' }
+                }
+                $state.mediaProcess.Dispose()
+            } catch { $cleanupErrors.Add($_.Exception.Message) }
+        }
+    }
+    Write-WorkerJson (Join-Path $request.output 'media-worker-result.json') ([ordered]@{
+        nonce=$request.nonce; input_sha256=$InputSha256; package_full_name=$context
+        primary_error=$primary; cleanup_errors=@($cleanupErrors); installed_media=$results
+    })
+    if ($primary -or $cleanupErrors.Count) { throw "Media worker failed. Primary: $primary; cleanup: $($cleanupErrors -join '; ')" }
+}
+
+function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [ValidateRange(1,300)][int]$TimeoutSeconds=150) {
+    # This debugging shell has the installed package token; it is not part of the
+    # native payload and its modules are not counted as application modules.
+    $runner=(Get-Process -Id $PID).Path
+    $helper=Join-Path $PSScriptRoot 'qualify-msix-install.ps1'
+    $nonce=[guid]::NewGuid().ToString('N')
+    $inputPath=Join-Path $State.temporary 'media-worker-input.json'
+    Write-NewUtf8Json $inputPath ([ordered]@{nonce=$nonce;installed=[ordered]@{InstallLocation=$State.installed.InstallLocation;PackageFullName=$State.installed.PackageFullName};output=$State.output;record=$State.record})
+    $inputHash=(Get-FileHash -LiteralPath $inputPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    # Encode a fixed script with single-quoted literal paths. No command-shell
+    # expansion, string argument splitting, or environment-dependent executable.
+    $body=". '" + $helper.Replace("'","''") + "' -LibraryOnly`nInvoke-CutQuayMediaWorker -InputPath '" + $inputPath.Replace("'","''") + "' -InputSha256 '$inputHash'"
+    $arguments='-NoLogo -NoProfile -NonInteractive -EncodedCommand ' + [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($body))
+    $started=[DateTime]::UtcNow
+    Invoke-CommandInDesktopPackage -PackageFamilyName $State.installed.PackageFamilyName -AppId 'CutQuay' -Command $runner -Args $arguments -PreventBreakaway -ErrorAction Stop | Out-Host
+    $readyPath=Join-Path $State.output 'media-worker-ready.json'
+    $resultPath=Join-Path $State.output 'media-worker-result.json'
+    $deadline=[DateTime]::UtcNow.AddSeconds(30)
+    while (-not (Test-Path -LiteralPath $readyPath)) {
+        if (Test-Path -LiteralPath $resultPath) {
+            $failed=Get-Content -LiteralPath $resultPath -Raw -Encoding utf8 | ConvertFrom-Json
+            throw "Media worker failed before ownership: $($failed.primary_error); cleanup: $($failed.cleanup_errors -join '; ')"
+        }
+        if ([DateTime]::UtcNow -ge $deadline) { throw 'Media worker did not report a live identity; unverified process preserved.' }
+        Start-Sleep -Milliseconds 100
+    }
+    $ready=Get-Content -LiteralPath $readyPath -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($ready.nonce -cne $nonce -or $ready.input_sha256 -cne $inputHash) { throw 'Media worker handshake differs from this invocation.' }
+    $candidate=[Diagnostics.Process]::GetProcessById([int]$ready.process_id)
+    try {
+        $null=$candidate.Handle
+        if ($candidate.HasExited -or $candidate.StartTime.ToUniversalTime() -lt $started -or $candidate.StartTime.ToUniversalTime().Ticks -ne $ready.start_ticks) { throw 'Media worker live process creation identity mismatch.' }
+        if ((Get-CanonicalPath $candidate.MainModule.FileName) -ine (Get-CanonicalPath $runner)) { throw 'Media worker executable differs from the exact diagnostic runner.' }
+        $packageName=Get-CutQuayProcessPackageName $candidate
+        if ($packageName -cne [string]$State.installed.PackageFullName -or $ready.package_full_name -cne $packageName) { throw 'Media worker package identity mismatch; unverified process preserved.' }
+        # Only the verified live handle confers cleanup ownership. An observed
+        # PID or a worker's self-reported identity alone must never confer it.
+        $State.mediaWorkerProcess=$candidate
+    } finally { if (-not $State.mediaWorkerProcess) { $candidate.Dispose() } }
+    $State.mediaWorkerEvidence=[ordered]@{
+        process_id=$candidate.Id; start_ticks=$ready.start_ticks; executable=$runner; package_full_name=$packageName
+        input_sha256=$inputHash; helper_sha256=(Get-FileHash $helper -Algorithm SHA256).Hash.ToLowerInvariant()
+        clean_exit_verified=$false; exit_code=$null
+    }
+    Write-WorkerJson (Join-Path $State.output 'media-worker-authorized.json') ([ordered]@{nonce=$nonce;process_id=$candidate.Id;start_ticks=$ready.start_ticks})
+    if (-not $candidate.WaitForExit($TimeoutSeconds * 1000)) { throw 'Owned media worker timed out.' }
+    $State.mediaWorkerEvidence.exit_code=$candidate.ExitCode
+    if (-not (Test-Path -LiteralPath $resultPath)) { throw "Media worker exited without its result: $($candidate.ExitCode)" }
+    $result=Get-Content -LiteralPath $resultPath -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($result.nonce -cne $nonce -or $result.input_sha256 -cne $inputHash -or $result.package_full_name -cne $packageName) { throw 'Media worker result identity mismatch.' }
+    if ($candidate.ExitCode -ne 0 -or $result.primary_error -or $result.cleanup_errors.Count) { throw "Media worker failed with $($candidate.ExitCode). Primary: $($result.primary_error); cleanup: $($result.cleanup_errors -join '; ')" }
+    if ($result.installed_media.Count -ne 4) { throw 'Media worker did not complete all four installed checks.' }
+    $State.mediaWorkerEvidence.clean_exit_verified=$true
+    return $result.installed_media
+}
+
 function Test-InstalledMedia([Collections.IDictionary]$State) {
     $results = [Collections.Generic.List[object]]::new()
     foreach ($program in @('ffmpeg','ffprobe')) {
@@ -260,9 +373,16 @@ function Test-InstalledMedia([Collections.IDictionary]$State) {
             $start.RedirectStandardOutput = $true
             $start.RedirectStandardError = $true
             $start.ArgumentList.Add($argument)
-            $State.mediaProcess = [Diagnostics.Process]::new()
-            $State.mediaProcess.StartInfo = $start
-            if (-not $State.mediaProcess.Start()) { throw "Installed $program failed to start." }
+            $candidate = [Diagnostics.Process]::new()
+            $candidate.StartInfo = $start
+            try {
+                if (-not $candidate.Start()) { throw "Installed $program failed to start." }
+            } catch {
+                $candidate.Dispose()
+                throw
+            }
+            $State.mediaProcess = $candidate
+            $null = $candidate.Handle
             $stdout = $State.mediaProcess.StandardOutput.ReadToEndAsync()
             $stderr = $State.mediaProcess.StandardError.ReadToEndAsync()
             if (-not $State.mediaProcess.WaitForExit(30000)) { throw "Installed $program $argument timed out." }
@@ -290,6 +410,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         unsignedPackageSha256 = $null; signedPackageSha256 = $null; signTool = $null
         aumid = $null; processPackageFullName = $null; modules = @(); window = $null
         executableSha256 = $null; media = @(); ownedProcesses = [Collections.Generic.List[Diagnostics.Process]]::new(); activationStarted = $null; mediaProcess = $null
+        mediaWorkerProcess = $null; mediaWorkerEvidence = $null
         diagnosticPackageFullName = $null; diagnosticStderr = $null
         diagnosticCleanClose = $false; cleanClose = $false; uninstallVerified = $false
     }
@@ -403,7 +524,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
     }.GetNewClosure()
 
     $operations.VerifyInstalledMedia = {
-        $state.media = @(Test-InstalledMedia $state)
+        $state.media = @(Invoke-InstalledMediaInPackage $state)
     }.GetNewClosure()
 
     $operations.CaptureInstalledStderr = {
@@ -514,6 +635,14 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         if ($state.installed) {
             try { Update-OwnedPackageProcesses $state } catch { $errors.Add($_.Exception.Message) }
         }
+        if ($state.mediaWorkerProcess) {
+            try {
+                if (-not $state.mediaWorkerProcess.HasExited) {
+                    $state.mediaWorkerProcess.Kill($true)
+                    if (-not $state.mediaWorkerProcess.WaitForExit(10000)) { throw 'Owned media worker did not stop.' }
+                }
+            } catch { $errors.Add($_.Exception.Message) }
+        }
         if ($state.mediaProcess -and -not $state.mediaProcess.HasExited) {
             try { $state.mediaProcess.Kill($true); if (-not $state.mediaProcess.WaitForExit(10000)) { throw 'Owned media probe did not stop.' } }
             catch { $errors.Add($_.Exception.Message) }
@@ -610,6 +739,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         signtool = $state.signTool
         certificate_private_key_exported = $false
         executable_sha256 = $state.executableSha256
+        media_worker = $state.mediaWorkerEvidence
         installed_media = $state.media
         electron_version = if ($state.record) { $state.record.runtime.electron.version } else { $null }
         loaded_module_count = @($state.modules).Count
