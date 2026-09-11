@@ -38,7 +38,9 @@ const sourceFiles = {};
 const notices = ['LICENSE','NOTICE','licenses.txt','Release/THIRD-PARTY-NOTICES.txt','Release/ffmpeg-build.json','Release/FFmpeg-LICENSE.txt'];
 for (const relative of [...notices, 'out/main/index.js','out/renderer/index.html']) {
   if (!files[relative] || files[relative].unpacked) throw Error(`ASAR required file missing/unpacked: ${relative}`);
-  const actual = asar.extractFile(archive, relative, false);
+  // Inventory keys stay portable; @electron/asar traverses using path.sep.
+  // Its extraction API therefore needs native separators on Windows.
+  const actual = asar.extractFile(archive, path.normalize(relative), false);
   const expected = regular(path.join(source, relative));
   if (!actual.equals(expected)) throw Error(`ASAR differs from source notice/build output: ${relative}`);
   sourceFiles[relative] = digest(expected);
