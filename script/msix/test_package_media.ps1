@@ -15,7 +15,11 @@ function Invoke-CommandInDesktopPackage {
     [CmdletBinding()] param([string]$PackageFamilyName, [string]$AppId, [string]$Command, [string]$Args, [switch]$PreventBreakaway)
     if ($PackageFamilyName -cne 'Fixture.Family' -or $AppId -cne 'CutQuay' -or $Command -cne $script:runner -or -not $PreventBreakaway) { throw 'Package launch identity/context changed.' }
     if ($script:scenario -eq 'wrong-parent-executable') {
-        $info=[Diagnostics.ProcessStartInfo]::new((Get-Command python -CommandType Application).Source)
+        # Get-Command can return both hosted Python and its WindowsApps alias.
+        # Ask the interpreter that actually runs for its one executable path.
+        $pythonPaths=@(& python -c 'import sys; print(sys.executable)')
+        if ($LASTEXITCODE -ne 0 -or $pythonPaths.Count -ne 1 -or -not [IO.Path]::IsPathFullyQualified($pythonPaths[0])) { throw 'Cannot resolve one actual fixture Python executable.' }
+        $info=[Diagnostics.ProcessStartInfo]::new([string]$pythonPaths[0])
         $info.UseShellExecute=$false
         foreach ($argument in @('-c','import time; time.sleep(30)')) { $info.ArgumentList.Add($argument) }
         $script:child=[Diagnostics.Process]::Start($info); $null=$script:child.Handle
@@ -35,13 +39,17 @@ function Get-CutQuayProcessPackageName { return 'Fixture.Package' }
 function Test-InstalledMedia { return @(1..4 | ForEach-Object { [ordered]@{exit_code=0;configuration_verified=$true} }) }
 '@
     if ($script:scenario -eq 'native-media') { $injection = "function Get-CutQuayProcessPackageName { return 'Fixture.Package' }" }
-    if ($script:scenario -eq 'worker-cleanup-error') { $injection += @'
+    if ($script:scenario -in @('worker-cleanup-error','worker-reporting-error')) { $injection += @'
 function Test-InstalledMedia([Collections.IDictionary]$State) {
     $State.mediaProcess=[pscustomobject]@{HasExited=$false}
     $State.mediaProcess | Add-Member ScriptMethod Kill { throw 'fixture media cleanup failed' }
+    if ($env:CUTQUAY_FIXTURE_COLLIDE_RESULT -eq '1') {
+        [IO.File]::WriteAllText((Join-Path $State.output 'media-worker-result.json'), 'previous evidence bytes')
+    }
     throw 'fixture media operation failed'
 }
 '@ }
+    if ($script:scenario -eq 'worker-reporting-error') { $injection += "`n`$env:CUTQUAY_FIXTURE_COLLIDE_RESULT='1'`n" }
     if ($script:scenario -eq 'worker-error') { $injection += "`nfunction Test-InstalledMedia { throw 'fixture media operation failed' }`n" }
     if ($script:scenario -eq 'worker-timeout') { $injection += "`nfunction Test-InstalledMedia { Start-Sleep -Seconds 30 }`n" }
     $body = $body.Replace('Invoke-CutQuayMediaWorker -InputPath', $injection + "`nInvoke-CutQuayMediaWorker -InputPath")
@@ -51,12 +59,15 @@ function Test-InstalledMedia([Collections.IDictionary]$State) {
     $script:child=[Diagnostics.Process]::Start($info)
     $null=$script:child.Handle
 }
-foreach ($script:scenario in @('success','native-media','worker-error','worker-cleanup-error','wrong-parent-identity','wrong-parent-executable','worker-timeout')) {
+foreach ($script:scenario in @('success','native-media','worker-error','worker-cleanup-error','worker-reporting-error','wrong-parent-identity','wrong-parent-executable','worker-timeout')) {
     $temporary=Join-Path ([IO.Path]::GetTempPath()) ('cutquay-worker-test-'+[guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory $temporary | Out-Null
+    $inputDirectory=Join-Path $temporary 'inputs'
+    $outputDirectory=Join-Path $temporary 'outputs'
+    New-Item -ItemType Directory $inputDirectory,$outputDirectory | Out-Null
     $state=[ordered]@{
         installed=[pscustomobject]@{PackageFullName='Fixture.Package';PackageFamilyName='Fixture.Family';InstallLocation=$temporary}
-        temporary=$temporary;output=$temporary;record=[pscustomobject]@{};mediaWorkerProcess=$null;mediaWorkerEvidence=$null
+        temporary=$inputDirectory;output=$outputDirectory;record=[pscustomobject]@{};mediaWorkerProcess=$null;mediaWorkerEvidence=$null
     }
     if ($script:scenario -eq 'native-media') {
         New-Item -ItemType Directory (Join-Path $temporary 'resources') | Out-Null
@@ -87,11 +98,16 @@ foreach ($script:scenario in @('success','native-media','worker-error','worker-c
         try { $timeout=if ($script:scenario -eq 'worker-timeout') { 2 } else { 30 }; $results=@(Invoke-InstalledMediaInPackage $state -TimeoutSeconds $timeout) } catch { $failure=$_.Exception.Message }
         if ($script:scenario -in @('success','native-media')) {
             if ($failure -or $results.Count -ne 4 -or -not $state.mediaWorkerEvidence.clean_exit_verified -or $state.mediaWorkerEvidence.exit_code -ne 0) { throw "Worker success failed: $failure" }
-        } elseif ($script:scenario -in @('worker-error','worker-cleanup-error')) {
+        } elseif ($script:scenario -in @('worker-error','worker-cleanup-error','worker-reporting-error')) {
             if ($failure -notmatch 'fixture media operation failed' -or -not $state.mediaWorkerProcess.HasExited) { throw "Worker failure was lost: $failure" }
-            if ($script:scenario -eq 'worker-cleanup-error' -and $failure -notmatch 'fixture media cleanup failed') { throw 'Worker cleanup error was lost' }
+            if ($script:scenario -in @('worker-cleanup-error','worker-reporting-error') -and $failure -notmatch 'fixture media cleanup failed') { throw 'Worker cleanup error was lost' }
+            if ($script:scenario -eq 'worker-reporting-error') {
+                if ($failure -notmatch 'reporting:.*already exists' -or (Get-Content (Join-Path $state.output 'media-worker-result.json') -Raw) -cne 'previous evidence bytes') { throw "Publication failure or original evidence was lost: $failure" }
+                $fallback=Get-Content (Join-Path $state.temporary 'media-worker-input.json.reporting-failure.json') -Raw | ConvertFrom-Json
+                if ($fallback.primary_error -cne 'fixture media operation failed' -or $fallback.cleanup_errors[0] -notmatch 'fixture media cleanup failed' -or $fallback.reporting_error -notmatch 'already exists') { throw 'Fallback receipt did not retain distinct errors.' }
+            }
         } elseif ($script:scenario -in @('wrong-parent-identity','wrong-parent-executable')) {
-            if ($failure -notmatch 'package identity|exact diagnostic runner' -or $state.mediaWorkerProcess -or $script:child.HasExited -or (Test-Path (Join-Path $temporary 'media-worker-authorized.json'))) { throw "Unverified worker was authorized/claimed: $failure" }
+            if ($failure -notmatch 'package identity|exact diagnostic runner' -or $state.mediaWorkerProcess -or $script:child.HasExited -or (Test-Path (Join-Path $state.output 'media-worker-authorized.json'))) { throw "Unverified worker was authorized/claimed: $failure" }
         } else {
             if ($failure -notmatch 'timed out' -or -not $state.mediaWorkerProcess -or $state.mediaWorkerProcess.HasExited) { throw "Owned timeout process not retained: $failure" }
         }

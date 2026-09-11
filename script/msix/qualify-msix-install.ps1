@@ -296,11 +296,31 @@ function Invoke-CutQuayMediaWorker([string]$InputPath, [string]$InputSha256) {
             } catch { $cleanupErrors.Add($_.Exception.Message) }
         }
     }
-    Write-WorkerJson (Join-Path $request.output 'media-worker-result.json') ([ordered]@{
+    $result = [ordered]@{
         nonce=$request.nonce; input_sha256=$InputSha256; package_full_name=$context
         primary_error=$primary; cleanup_errors=@($cleanupErrors); installed_media=$results
-    })
+    }
+    try {
+        Write-WorkerJson (Join-Path $request.output 'media-worker-result.json') $result
+    } catch {
+        $reportingError=$_.Exception.Message
+        $failure="Media worker failed. Primary: $primary; cleanup: $($cleanupErrors -join '; '); reporting: $reportingError"
+        # Keep a diagnostic next to the parent's unique input, independently of
+        # an unavailable/colliding output result. Never replace either path.
+        $result['reporting_error']=$reportingError
+        try { Write-WorkerJson ($InputPath + '.reporting-failure.json') $result }
+        catch { $failure += '; fallback reporting: ' + $_.Exception.Message }
+        throw $failure
+    }
     if ($primary -or $cleanupErrors.Count) { throw "Media worker failed. Primary: $primary; cleanup: $($cleanupErrors -join '; ')" }
+}
+
+function Assert-NoMediaWorkerReportingFailure([string]$InputPath, [string]$Nonce, [string]$InputHash) {
+    $failurePath=$InputPath + '.reporting-failure.json'
+    if (-not (Test-Path -LiteralPath $failurePath)) { return }
+    $failure=Get-Content -LiteralPath $failurePath -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($failure.nonce -cne $Nonce -or $failure.input_sha256 -cne $InputHash) { throw 'Media worker reporting diagnostic identity mismatch.' }
+    throw "Media worker failed. Primary: $($failure.primary_error); cleanup: $($failure.cleanup_errors -join '; '); reporting: $($failure.reporting_error)"
 }
 
 function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [ValidateRange(1,300)][int]$TimeoutSeconds=150) {
@@ -322,6 +342,7 @@ function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [Valida
     $resultPath=Join-Path $State.output 'media-worker-result.json'
     $deadline=[DateTime]::UtcNow.AddSeconds(30)
     while (-not (Test-Path -LiteralPath $readyPath)) {
+        Assert-NoMediaWorkerReportingFailure $inputPath $nonce $inputHash
         if (Test-Path -LiteralPath $resultPath) {
             $failed=Get-Content -LiteralPath $resultPath -Raw -Encoding utf8 | ConvertFrom-Json
             throw "Media worker failed before ownership: $($failed.primary_error); cleanup: $($failed.cleanup_errors -join '; ')"
@@ -350,6 +371,7 @@ function Invoke-InstalledMediaInPackage([Collections.IDictionary]$State, [Valida
     Write-WorkerJson (Join-Path $State.output 'media-worker-authorized.json') ([ordered]@{nonce=$nonce;process_id=$candidate.Id;start_ticks=$ready.start_ticks})
     if (-not $candidate.WaitForExit($TimeoutSeconds * 1000)) { throw 'Owned media worker timed out.' }
     $State.mediaWorkerEvidence.exit_code=$candidate.ExitCode
+    Assert-NoMediaWorkerReportingFailure $inputPath $nonce $inputHash
     if (-not (Test-Path -LiteralPath $resultPath)) { throw "Media worker exited without its result: $($candidate.ExitCode)" }
     $result=Get-Content -LiteralPath $resultPath -Raw -Encoding utf8 | ConvertFrom-Json
     if ($result.nonce -cne $nonce -or $result.input_sha256 -cne $inputHash -or $result.package_full_name -cne $packageName) { throw 'Media worker result identity mismatch.' }
