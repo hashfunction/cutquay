@@ -168,7 +168,9 @@ async function runUi(request) {
     } else {
       const inspection = validateInspection(request.inspection);
       const reopened = await snapshot('output-reopened'); const video = reopened.video.find((v) => Number.isFinite(v.duration)); assert(Math.abs(video.duration - inspection.duration) <= 0.1); assert(video.duration >= 2.85 && video.duration <= 3.15, 'Reopened video duration differs from expected trim');
-      await click({ selector: 'button[title="Export selection"]' });
+      // Reopening creates an initial full-file segment, which is intentionally
+      // excluded from cutting. Its existing button is titled Export.
+      await click({ selector: 'button[title="Export"]', text: 'Export' });
       const formatSelector = 'div:has(> h1) select[title="Output container format:"]';
       // Perturb the existing control, then require the persisted recipe to
       // restore it through its actual onChange path after app restart.

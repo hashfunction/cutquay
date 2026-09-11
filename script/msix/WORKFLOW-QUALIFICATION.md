@@ -163,3 +163,14 @@ It still requires exposed, enabled trim fields before entering the requested
 2–5 second range. This changes only test navigation and leaves source defaults
 unchanged. The normal toggle may save its view preference; the driver does not
 edit configuration files directly.
+
+Run 34645294742 completed the installed consumer import, 2–5 second trim,
+saved-recipe application and actual export. Its 156,675-byte output was then
+reopened at 3.029333 seconds. The next test step failed because an untouched
+full-file segment uses the existing button title **Export**, while the driver
+expected **Export selection**. `useSegments` deliberately excludes the initial
+full-file segment from the cut list, and `ExportButton` derives its title from
+that list. The reopen step now selects the exact visible **Export** button.
+The trim phase keeps its selection-specific selector and all report/media
+checks. Persisted recipe reapplication after restart still requires a fresh
+Windows result.
