@@ -1,0 +1,87 @@
+{
+  "verifiedAt": "2026-09-11T07:30:21.717490+00:00",
+  "reviewedCommit": "f72fca1577d7f1936a90c5d34c5868be8332ee49",
+  "host": {
+    "platform": "macOS",
+    "architecture": "arm64",
+    "node": "25.2.1",
+    "yarn": "4.11.0",
+    "mediaFixtureRuntime": "Homebrew FFmpeg 9.0.1, not the pinned Windows runtime"
+  },
+  "red": {
+    "reviewerDefects": {
+      "exitCode": 1,
+      "failed": 5,
+      "passed": 2,
+      "log": "red.log",
+      "note": "Real source alias and Buffer stderr probes plus actual root-hook load/recovery/write tests, before production fixes."
+    },
+    "reportLifecycle": {
+      "exitCode": 1,
+      "failed": 2,
+      "passed": 6,
+      "log": "lifecycle-red.log",
+      "note": "Native failed/cancelled extraction plus real useExportReports lifecycle omitted later unattempted tracks before planning fix."
+    }
+  },
+  "commands": [
+    {
+      "command": "yarn tsc",
+      "exitCode": 0
+    },
+    {
+      "command": "yarn lint",
+      "exitCode": 0,
+      "note": "Existing jsx-ast-utils TSSatisfiesExpression diagnostics remain; no lint errors."
+    },
+    {
+      "command": "CUTQUAY_TEST_FFMPEG_DIR=/opt/homebrew/bin yarn test run",
+      "exitCode": 0,
+      "testFilesPassed": 16,
+      "distinctSourceTestsPassed": 113,
+      "testsSkipped": 0
+    },
+    {
+      "command": "yarn build",
+      "exitCode": 0
+    },
+    {
+      "command": "yarn check-licenses",
+      "exitCode": 0,
+      "scope": "npm allowlist only"
+    },
+    {
+      "command": "yarn check-release-licenses",
+      "exitCode": 1,
+      "expected": "Windows runtime and complete corresponding-source inventory remain gated"
+    },
+    {
+      "command": "git diff --check f72fca1577d7f1936a90c5d34c5868be8332ee49",
+      "exitCode": 0,
+      "scope": "Repair diff against reviewed commit"
+    }
+  ],
+  "testDiscovery": {
+    "include": "src/**/*.test.{ts,tsx}",
+    "generatedCommonTestCopiesPresent": 3,
+    "generatedTestCopiesDiscovered": 0,
+    "historicalCorrection": "Original 111 test executions were 101 distinct source tests plus 10 compiled duplicate executions. Historical logs were preserved unchanged."
+  },
+  "coverage": [
+    "Real App call sites pass frozen run.sources through cuts, concat, automatic merge and extraction; typechecked, not GUI-executed",
+    "Real automatic-merge integration rejects original and external source aliases: directory and ancestor symlinks, file symlinks, hardlinks, and host-supported case/Unicode normalization aliases",
+    "Real native automatic merge rejects a destination changed into a source hardlink between begin and publication",
+    "Actual root settings hook preserves malformed and read-failed data, blocks direct/updater mutations, supports explicit successful retry, distinguishes absent settings and retains prior state on write failure",
+    "Real attachment payload publication and repeated destinations, real cancellation and unrelated failure, missing output, publisher empty-output rejection",
+    "Real useExportReports begin/outcome/finish/native JSON write lifecycle for created/skipped/failed/cancelled attachment outcomes and later not_attempted tracks"
+  ],
+  "limitations": [
+    "No GUI/App.tsx full end-to-end execution or Windows packaging/runtime qualification",
+    "Native FFmpeg GPLv3 corresponding source, build dependency and notice completeness audit remains controller-owned; application remains separately invoked GPL-2.0-only aggregate",
+    "No new dependency/security audit: package pins and lockfile unchanged; recheck Electron support at release"
+  ],
+  "logs": "Terminal output preserved with trailing whitespace and trailing blank lines normalized only",
+  "windowsExecuted": false,
+  "storePackaged": false,
+  "licenseAuditComplete": false
+}

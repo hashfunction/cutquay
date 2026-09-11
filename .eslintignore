@@ -1,0 +1,7 @@
+/dist
+/out
+/main-ts-dist
+/common-ts-dist
+
+# Generated translation resource declarations
+src/types/

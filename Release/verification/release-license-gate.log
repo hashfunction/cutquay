@@ -1,0 +1,8 @@
+file:///Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/script/checkReleaseLicenses.ts:5
+  throw new Error('Release blocked: FFmpeg corresponding-source inventory and Windows runtime verification are incomplete. See Release/ffmpeg-build.json.');
+        ^
+
+Error: Release blocked: FFmpeg corresponding-source inventory and Windows runtime verification are incomplete. See Release/ffmpeg-build.json.
+    at file:///Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/script/checkReleaseLicenses.ts:5:9
+
+Node.js v25.2.1

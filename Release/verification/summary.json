@@ -1,0 +1,82 @@
+{
+  "verifiedAt": "2026-09-11T07:04:53.998342+00:00",
+  "host": {
+    "platform": "macOS",
+    "architecture": "arm64",
+    "node": "v25.2.1",
+    "yarn": "4.11.0",
+    "mediaFixtureRuntime": "Homebrew FFmpeg 9.0.1; this is not the pinned Windows binary"
+  },
+  "baseline": "260603cad0180dc5d6c8eeebba1476b703703b6c",
+  "branch": "codex/cutquay",
+  "commands": [
+    {
+      "command": "yarn install --immutable",
+      "exitCode": 0
+    },
+    {
+      "command": "yarn tsc",
+      "exitCode": 0
+    },
+    {
+      "command": "yarn lint",
+      "exitCode": 0,
+      "note": "Upstream jsx-ast-utils prints TSSatisfiesExpression notices; no lint errors."
+    },
+    {
+      "command": "CUTQUAY_TEST_FFMPEG_DIR=/opt/homebrew/bin yarn test run",
+      "exitCode": 0,
+      "testFilesPassed": 18,
+      "testsPassed": 111,
+      "testsSkipped": 0
+    },
+    {
+      "command": "yarn build",
+      "exitCode": 0
+    },
+    {
+      "command": "yarn check-licenses",
+      "exitCode": 0,
+      "scope": "npm license allowlist only"
+    },
+    {
+      "command": "yarn generate-licenses",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "yarn check-release-licenses",
+      "exitCode": 1,
+      "expected": "Windows runtime and complete native corresponding-source inventory remain incomplete"
+    }
+  ],
+  "redEvidence": [
+    "Recipe and report tests first failed on missing implementation modules on 2026-09-10",
+    "Native export file tests first failed on missing exportFiles module on 2026-09-10",
+    "External navigation guard test first failed on missing navigation module on 2026-09-10"
+  ],
+  "runtimePins": {
+    "electron": "42.11.3",
+    "electronStatus": "Patched supported42 branch; latest major independently verified by coordinator as44.3.0; recheck at release",
+    "officialReleaseEvidence": "https://releases.electronjs.org/",
+    "electronBuilder": "26.15.3",
+    "vite": "7.3.6",
+    "vitest": "4.1.11",
+    "sharp": "0.35.4",
+    "nanoid": "5.1.16"
+  },
+  "npmAudit": {
+    "critical": 0,
+    "high": 0,
+    "moderate": 9,
+    "actualSecurityAdvisories": 1,
+    "deprecationNotices": 8,
+    "remainingSecurityAdvisory": "csv-parse6.2.1 columns-path prototype replacement; src/renderer/src/edlFormats.ts invokes csvParse(csvStr,{}) in array mode. No claim of vulnerability clearance."
+  },
+  "windowsExecuted": false,
+  "storePackaged": false,
+  "licenseAuditComplete": false
+}

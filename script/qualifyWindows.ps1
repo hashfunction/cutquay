@@ -1,0 +1,47 @@
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+if (-not $IsWindows -or $env:CI -ne 'true') { throw 'Requires isolated Windows CI.' }
+Set-Location (Resolve-Path (Join-Path $PSScriptRoot '..'))
+$yarn = '.yarn/releases/yarn-4.11.0.cjs'
+function Run-Yarn([string[]]$Arguments) {
+  & node $yarn @Arguments
+  if ($LASTEXITCODE -ne 0) { throw "Yarn failed: $Arguments" }
+}
+New-Item -ItemType Directory -Force build-evidence | Out-Null
+Run-Yarn @('install', '--immutable')
+Run-Yarn @('download-ffmpeg-win32-x64')
+$env:CUTQUAY_TEST_FFMPEG_DIR = (Resolve-Path 'ffmpeg/win32-x64/lib').Path
+$ffmpeg = Join-Path $env:CUTQUAY_TEST_FFMPEG_DIR 'ffmpeg.exe'
+$version = & $ffmpeg -version 2>&1
+if ($LASTEXITCODE -ne 0) { throw 'FFmpeg version execution failed.' }
+$configuration = & $ffmpeg -buildconf 2>&1
+if ($LASTEXITCODE -ne 0) { throw 'FFmpeg build configuration execution failed.' }
+$version | Set-Content build-evidence/ffmpeg-version.txt -Encoding utf8NoBOM
+$configuration | Set-Content build-evidence/ffmpeg-buildconf.txt -Encoding utf8NoBOM
+$pin = Get-Content Release/ffmpeg-build.json -Raw | ConvertFrom-Json
+if (-not (($version -join "`n").Contains($pin.version))) { throw 'FFmpeg version differs from pin.' }
+if (-not (($version -join "`n").Contains($pin.configureStringsExtractedFromBinaries[0]))) { throw 'FFmpeg configuration differs from pin.' }
+Run-Yarn @('tsc')
+Run-Yarn @('lint')
+Run-Yarn @('test', 'run', '--reporter=default', '--reporter=junit', '--outputFile=build-evidence/tests.xml')
+Run-Yarn @('check-licenses')
+Run-Yarn @('generate-licenses')
+$env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
+Run-Yarn @('pack-win-dir')
+$executable = (Resolve-Path 'dist/win-unpacked/CutQuay.exe').Path
+$process = Start-Process $executable -PassThru
+try {
+  $deadline = (Get-Date).AddSeconds(45)
+  do {
+    Start-Sleep -Milliseconds 500
+    $process.Refresh()
+    if ($process.HasExited) { throw "CutQuay exited during startup: $($process.ExitCode)" }
+  } until ($process.MainWindowHandle -ne 0 -or (Get-Date) -gt $deadline)
+  if ($process.MainWindowHandle -eq 0) { throw 'No CutQuay native main window appeared.' }
+  @{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); windows_native_startup=$true; executable_sha256=(Get-FileHash $executable -Algorithm SHA256).Hash; window_title=$process.MainWindowTitle; ffmpeg_version=$pin.version; native_source_clearance=$false; interactive_acceptance=$false; msix_built=$false; submitted=$false } | ConvertTo-Json | Set-Content build-evidence/windows-startup.json -Encoding utf8NoBOM
+} finally {
+  if (-not $process.HasExited) {
+    $process.CloseMainWindow() | Out-Null
+    if (-not $process.WaitForExit(5000)) { $process.Kill() }
+  }
+}

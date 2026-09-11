@@ -1,0 +1,243 @@
+
+ RUN  v4.1.11 /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source
+
+stderr | src/renderer/src/hooks/useUserSettingsRoot.test.tsx > preserves failed-load data after every ordinary mutation, including updater callbacks
+Invalid saved export recipes ZodError: [
+  {
+    "expected": "object",
+    "code": "invalid_type",
+    "path": [
+      1
+    ],
+    "message": "Invalid input: expected object, received null"
+  }
+]
+    at parseExportRecipes (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/common/exportRecipe.ts:30:56)
+    at /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:57:18
+    at mountStateImpl (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:8268:24)
+    at mountState (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:8289:22)
+    at Object.useState (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:26243:18)
+    at process.env.NODE_ENV.exports.useState (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react/cjs/react.development.js:1263:34)
+    at useUserSettingsRoot (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:56:45)
+    at /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.test.tsx:38:39
+    at TestComponent (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/@testing-library/react/dist/pure.js:339:27)
+    at Object.react_stack_bottom_frame (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+
+stderr | src/renderer/src/hooks/useUserSettingsRoot.test.tsx > keeps failed reads locked until an explicit successful retry, then permits normal saves
+Invalid saved export recipes Error: Unable to read saved recipes
+    at Object.get (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.test.tsx:16:26)
+    at safeGetConfig (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:40:32)
+    at /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:57:37
+    at mountStateImpl (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:8268:24)
+    at mountState (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:8289:22)
+    at Object.useState (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:26243:18)
+    at process.env.NODE_ENV.exports.useState (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react/cjs/react.development.js:1263:34)
+    at useUserSettingsRoot (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:56:45)
+    at /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.test.tsx:50:39
+    at TestComponent (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/@testing-library/react/dist/pure.js:339:27)
+
+stderr | src/renderer/src/hooks/useUserSettingsRoot.test.tsx > distinguishes absent settings from failed loads and retains valid data after write failures
+Failed to set config exportRecipes Error: Unable to save recipes
+    at Object.set (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.test.tsx:21:27)
+    at safeSetConfig (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:32:19)
+    at /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/src/renderer/src/hooks/useUserSettingsRoot.ts:63:19
+    at Object.react_stack_bottom_frame (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (/Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source/node_modules/react-dom/cjs/react-dom-client.development.js:15519:11)
+
+ ❯ src/renderer/src/hooks/useUserSettingsRoot.test.tsx (3 tests | 3 failed) 61ms
+   × preserves failed-load data after every ordinary mutation, including updater callbacks 18ms
+   × keeps failed reads locked until an explicit successful retry, then permits normal saves 1ms
+   × distinguishes absent settings from failed loads and retains valid data after write failures 3ms
+stdout | src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > protects original media through the real automatic merge and an ancestor directory alias
+Merging files {
+  paths: [
+    '/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/one.mkv',
+    '/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/two.mkv'
+  ]
+} to /var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/ancestor-alias/cutquay-media-soTt08/.cutquay-export-1vjR6Z/日本語 fixture.mkv
+
+stdout | src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > protects original media through the real automatic merge and an ancestor directory alias
+echo -e "file 'file:/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/one.mkv'\nfile 'file:/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/two.mkv'" | ffmpeg -hide_banner -f concat -safe 0 -protocol_whitelist 'file,pipe,fd' -i - -i '/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/one.mkv' -map '0:0' '-c:0' copy '-disposition:0' default -map '0:1' '-c:1' copy '-disposition:1' default -map_metadata 1 -default_mode infer_no_subs -ignore_unknown -f matroska -y '/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/ancestor-alias/cutquay-media-soTt08/.cutquay-export-1vjR6Z/日本語 fixture.mkv'
+
+stdout | src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > protects original media through the real automatic merge and an ancestor directory alias
+STDERR:
+[matroska,webm @ 0xc59404280] Auto-inserting h264_mp4toannexb bitstream filter
+[aist#0:1/pcm_s16le @ 0xc58804300] Guessed Channel Layout: mono
+Input #0, concat, from 'fd:':
+  Duration: N/A, start: 0.000000, bitrate: 768 kb/s
+  Stream #0:0: Video: h264 (Constrained Baseline), yuv420p(tv, progressive), 160x90 [SAR 1:1 DAR 16:9], 10 fps, 10 tbr, 1k tbn
+    Metadata:
+      ENCODER         : Lavc63.1.101 libx264
+      DURATION        : 00:00:01.000000000
+  Stream #0:1: Audio: pcm_s16le, 48000 Hz, mono, s16, 768 kb/s, start 0.003000
+    Metadata:
+      ENCODER         : Lavc63.1.101 pcm_s16le
+      DURATION        : 00:00:01.005000000
+[aist#1:1/pcm_s16le @ 0xc58804900] Guessed Channel Layout: mono
+Input #1, matroska,webm, from '/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/one.mkv':
+  Metadata:
+    ENCODER         : Lavf63.1.101
+  Duration: 00:00:01.01, start: 0.000000, bitrate: 930 kb/s
+  Stream #1:0: Video: h264 (Constrained Baseline), yuv420p(tv, progressive), 160x90 [SAR 1:1 DAR 16:9], 10 fps, 10 tbr, 1k tbn (default)
+    Metadata:
+      ENCODER         : Lavc63.1.101 libx264
+      DURATION        : 00:00:01.000000000
+  Stream #1:1: Audio: pcm_s16le, 48000 Hz, mono, s16, 768 kb/s, start 0.003000 (default)
+    Metadata:
+      ENCODER         : Lavc63.1.101 pcm_s16le
+      DURATION        : 00:00:01.005000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (copy)
+  Stream #0:1 -> #0:1 (copy)
+Output #0, matroska, to '/var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/ancestor-alias/cutquay-media-soTt08/.cutquay-export-1vjR6Z/日本語 fixture.mkv':
+  Metadata:
+    encoder         : Lavf63.1.101
+  Stream #0:0: Video: h264 (Constrained Baseline) (H264 / 0x34363248), yuv420p(tv, progressive), 160x90 [SAR 1:1 DAR 16:9], q=2-31, 10 fps, 10 tbr, 1k tbn (default)
+    Metadata:
+      ENCODER         : Lavc63.1.101 libx264
+      DURATION        : 00:00:01.000000000
+  Stream #0:1: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 48000 Hz, mono, s16, 768 kb/s (default)
+    Metadata:
+      ENCODER         : Lavc63.1.101 pcm_s16le
+      DURATION        : 00:00:01.005000000
+[matroska,webm @ 0xc59404280] Auto-inserting h264_mp4toannexb bitstream filter
+[out#0/matroska @ 0xc5940c600] video:62KiB audio:282KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.586538%
+frame=   30 fps=0.0 q=-1.0 Lsize=     346KiB time=00:00:03.01 bitrate= 938.7kbits/s speed=1.44e+03x elapsed=0:00:00.00
+
+ ❯ src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx (4 tests | 2 failed) 1655ms
+   × protects original media through the real automatic merge and an ancestor directory alias 126ms
+   × publishes the exact attachment payload when native FFmpeg returns its expected Buffer stderr 80ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > protects original media through the real automatic merge and an ancestor directory alias
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx:150:55
+    148|       });
+    149|     } catch (error) { failure = error; }
+    150|     expect((await readFile(source)).equals(original)).toBe(true);
+       |                                                       ^
+    151|     expect(failure).toBeInstanceOf(Error);
+    152|     expect(outcomes.at(-1)).toMatchObject({ status: 'failed' });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > publishes the exact attachment payload when native FFmpeg returns its expected Buffer stderr
+ExecaError: Command failed with exit code 1: /opt/homebrew/bin/ffmpeg -y -hide_banner -loglevel error '-dump_attachment:2' /var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/.cutquay-export-H12F99/with-attachment-stream-2-attachment-undefined.bin -i /var/folders/mt/ll630b9x785gtdp6529w25bh0000gn/T/cutquay-media-soTt08/with-attachment.mkv
+
+At least one output file must be specified
+ ❯ getFinalError node_modules/execa/lib/return/final-error.js:6:9
+ ❯ makeError node_modules/execa/lib/return/result.js:108:16
+ ❯ getAsyncResult node_modules/execa/lib/methods/main-async.js:168:4
+ ❯ handlePromise node_modules/execa/lib/methods/main-async.js:151:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/renderer/src/hooks/useUserSettingsRoot.test.tsx > preserves failed-load data after every ordinary mutation, including updater callbacks
+AssertionError: expected [ { version: 1, id: 'new', …(12) } ] to deeply equal [ { version: 1, …(13) }, null ]
+
+- Expected
++ Received
+
+@@ -4,16 +4,15 @@
+      "avoidNegativeTs": "make_non_negative",
+      "cutFileTemplate": "${FILENAME}-${SEG_NUM}${EXT}",
+      "cutMergedFileTemplate": "${FILENAME}-merged${EXT}",
+      "enableOverwriteOutput": false,
+      "exportMode": "merge",
+-     "id": "podcast",
++     "id": "new",
+      "keyframeCut": true,
+      "movFastStart": true,
+-     "name": "Podcast clip",
++     "name": "New recipe",
+      "outFormat": "matroska",
+      "preserveChapters": true,
+      "preserveMetadata": "default",
+      "version": 1,
+    },
+-   null,
+  ]
+
+ ❯ src/renderer/src/hooks/useUserSettingsRoot.test.tsx:42:21
+     40|   expect(result.current.settings.exportRecipes).toEqual([]);
+     41|   act(() => result.current.setExportRecipes([{ ...recipe, id: 'new', n…
+     42|   expect(persisted).toEqual(original);
+       |                     ^
+     43|   act(() => result.current.setExportRecipes(() => []));
+     44|   expect(persisted).toEqual(original);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/renderer/src/hooks/useUserSettingsRoot.test.tsx > keeps failed reads locked until an explicit successful retry, then permits normal saves
+AssertionError: expected undefined to be truthy
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ src/renderer/src/hooks/useUserSettingsRoot.test.tsx:51:49
+     49|   readFails = true;
+     50|   const { result } = renderHook(() => useUserSettingsRoot());
+     51|   expect(result.current.exportRecipesLoadError).toBeTruthy();
+       |                                                 ^
+     52|   act(() => result.current.setExportRecipes([]));
+     53|   expect(persisted).toEqual([recipe]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/renderer/src/hooks/useUserSettingsRoot.test.tsx > distinguishes absent settings from failed loads and retains valid data after write failures
+AssertionError: expected [] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+- [
+-   {
+-     "autoExportExtraStreams": false,
+-     "avoidNegativeTs": "make_non_negative",
+-     "cutFileTemplate": "${FILENAME}-${SEG_NUM}${EXT}",
+-     "cutMergedFileTemplate": "${FILENAME}-merged${EXT}",
+-     "enableOverwriteOutput": false,
+-     "exportMode": "merge",
+-     "id": "podcast",
+-     "keyframeCut": true,
+-     "movFastStart": true,
+-     "name": "Podcast clip",
+-     "outFormat": "matroska",
+-     "preserveChapters": true,
+-     "preserveMetadata": "default",
+-     "version": 1,
+-   },
+- ]
++ []
+
+ ❯ src/renderer/src/hooks/useUserSettingsRoot.test.tsx:72:49
+     70|   act(() => result.current.setExportRecipes([]));
+     71|   expect(persisted).toEqual([recipe]);
+     72|   expect(result.current.settings.exportRecipes).toEqual([recipe]);
+       |                                                 ^
+     73| });
+     74|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 2 passed (7)
+   Start at  00:19:57
+   Duration  1.97s (transform 235ms, setup 0ms, import 327ms, tests 1.72s, environment 541ms)

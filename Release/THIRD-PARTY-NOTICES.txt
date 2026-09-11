@@ -1,0 +1,14 @@
+CutQuay — Trieflow LLC
+
+Application: based on LosslessCut v3.69.0 at 260603cad0180dc5d6c8eeebba1476b703703b6c.
+Copyright © 2016–2026 Mikael Finstad and contributors. Modifications © 2026 Trieflow LLC.
+Application license: GPL-2.0-only; see LICENSE and NOTICE. Distribute complete modified source/build scripts with the application.
+
+FFmpeg Windows x64: BtbN dated build n8.1.2-51-g7ba069f4f1, archive and binary hashes in ffmpeg-build.json.
+The archive includes GPL version 3 in FFmpeg-LICENSE.txt and uses --enable-gpl --enable-version3. Embedded configure flags are inventoried in ffmpeg-build.json.
+These executable/DLL files are separate native media programs. No assertion is made that an npm package-license scan clears codec or patent obligations.
+Corresponding-source, statically linked library and patch inventories remain incomplete. Store packaging is blocked until that review is complete.
+
+Electron 42.11.3 is pinned to a patched supported branch. Recheck Electron's supported-major window and security patches immediately before release.
+JavaScript/native-node dependency notices are generated to licenses.txt from the immutable yarn.lock. Open Sans is under OFL-1.1.
+The upstream Hippocratic-2.1 react-leaflet packages and online map rendering have been removed; GPS metadata is shown locally.

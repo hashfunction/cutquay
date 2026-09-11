@@ -1,0 +1,10 @@
+CutQuay © 2026 Trieflow LLC.
+Based on LosslessCut v3.69.0, commit 260603cad0180dc5d6c8eeebba1476b703703b6c.
+LosslessCut © 2016–2026 Mikael Finstad and contributors.
+https://github.com/mifi/lossless-cut
+
+CutQuay source and modifications are GPL-2.0-only. See LICENSE.
+Original CutQuay application icon © 2026 Trieflow LLC, GPL-2.0-only.
+Upstream product names are retained only for attribution and file-format interoperability.
+Redistributors must provide complete corresponding source and build scripts.
+See Release/THIRD-PARTY-NOTICES.txt and Release/ffmpeg-build.json for media-runtime audit status.

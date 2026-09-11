@@ -1,0 +1,30 @@
+name: CutQuay Windows qualification
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/cutquay]
+permissions:
+  contents: read
+jobs:
+  windows-x64:
+    runs-on: windows-2025
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Qualify actual Windows media runtime and application
+        shell: pwsh
+        run: ./script/qualifyWindows.ps1
+      - name: Preserve qualification metadata only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CutQuay-Windows-qualification
+          path: |
+            build-evidence/*.json
+            build-evidence/*.txt
+            build-evidence/*.xml
+          retention-days: 14
+          if-no-files-found: error

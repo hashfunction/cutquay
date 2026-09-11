@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source
+
+
+ Test Files  4 passed (4)
+      Tests  22 passed (22)
+   Start at  00:26:12
+   Duration  6.14s (transform 244ms, setup 0ms, import 477ms, tests 6.32s, environment 1.08s)

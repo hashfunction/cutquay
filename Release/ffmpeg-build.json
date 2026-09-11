@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "status": "pinned-input-inventory-complete-corresponding-source-audit-pending",
+  "platform": "win32-x64",
+  "archiveName": "ffmpeg-n8.1.2-51-g7ba069f4f1-win64-gpl-shared-8.1.zip",
+  "archiveUrl": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-10-15-31/ffmpeg-n8.1.2-51-g7ba069f4f1-win64-gpl-shared-8.1.zip",
+  "archiveSha256": "0961405dc6d372aa0f137449c628816af2837e4732bd706eca307fb7dfbab6dc",
+  "githubAssetId": 555279932,
+  "archiveRoot": "ffmpeg-n8.1.2-51-g7ba069f4f1-win64-gpl-shared-8.1",
+  "version": "n8.1.2-51-g7ba069f4f1",
+  "ffmpegCommit": "7ba069f4f1",
+  "ffmpegSourceUrl": "https://github.com/FFmpeg/FFmpeg/tree/7ba069f4f1",
+  "builderRepository": "https://github.com/BtbN/FFmpeg-Builds",
+  "builderTag": "autobuild-2026-09-10-15-31",
+  "builderTagObject": {
+    "sha": "cc8f0958be119db774cdaf6c50065651a4901e72",
+    "type": "commit",
+    "url": "https://api.github.com/repos/BtbN/FFmpeg-Builds/git/commits/cc8f0958be119db774cdaf6c50065651a4901e72"
+  },
+  "configureStringsExtractedFromBinaries": [
+    "--prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-gpl --enable-version3 --disable-debug --enable-shared --disable-static --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libshaderc --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --disable-libxcb --disable-xlib --disable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --enable-avisynth --enable-chromaprint --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --disable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20260910",
+    "@--prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-gpl --enable-version3 --disable-debug --enable-shared --disable-static --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libshaderc --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --disable-libxcb --disable-xlib --disable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --enable-avisynth --enable-chromaprint --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --disable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20260910",
+    "%sconfiguration: --prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-gpl --enable-version3 --disable-debug --enable-shared --disable-static --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libshaderc --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --disable-libxcb --disable-xlib --disable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --enable-avisynth --enable-chromaprint --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --disable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20260910\n"
+  ],
+  "files": [
+    {
+      "path": "bin/avformat-62.dll",
+      "sizeBytes": 22869504,
+      "sha256": "a63a6a75a6f88f2398982a87581afd9ff334a7ea23f3a5149b77fa23e8510ccc"
+    },
+    {
+      "path": "bin/swscale-9.dll",
+      "sizeBytes": 12823040,
+      "sha256": "3df5f1d9c4afea2704511b65f1f35b8a90fbd13494a6f52cd690bbea14e99e3b"
+    },
+    {
+      "path": "bin/avfilter-11.dll",
+      "sizeBytes": 36607488,
+      "sha256": "ca6761e382059683c434b8d0f2157d6e2f58d27c177a756b62abfe8435870c00"
+    },
+    {
+      "path": "bin/swresample-6.dll",
+      "sizeBytes": 733696,
+      "sha256": "34ff844b1e0850ac3dcbb807b8970d02be94f9476f78cfbe7307a852d4992e8a"
+    },
+    {
+      "path": "bin/ffprobe.exe",
+      "sizeBytes": 226816,
+      "sha256": "84710a9ee5b5943b72d21101496623ef6b87a50e0eb17cf110d7f0f37d785140"
+    },
+    {
+      "path": "bin/avdevice-62.dll",
+      "sizeBytes": 4048384,
+      "sha256": "af09b7ff1c6ba83b8c6e1053c8bee7b25037b7b06911ad953bec8010875823ff"
+    },
+    {
+      "path": "bin/avcodec-62.dll",
+      "sizeBytes": 118008320,
+      "sha256": "2b0ff2e44750b16d34eaf2eafb6643bf5f8b00a77151ac249de5a6b708591b80"
+    },
+    {
+      "path": "bin/ffmpeg.exe",
+      "sizeBytes": 540160,
+      "sha256": "608fa33177fa8c6015cdc0e523d8553545b2dc4d81a3298bfdaa9e8c55af721b"
+    },
+    {
+      "path": "bin/avutil-60.dll",
+      "sizeBytes": 3011584,
+      "sha256": "5de78c3c2df379bbbca4ae62f4df39c4df35abd99eac7ce276554862ffc11daf"
+    }
+  ],
+  "archiveLicenseFile": "Release/FFmpeg-LICENSE.txt",
+  "verifiedAt": "2026-09-11T06:56:31.955673+00:00",
+  "runtimeExecutedOnWindows": false,
+  "correspondingSourceAuditComplete": false,
+  "remainingGates": [
+    "Execute ffmpeg.exe -version and -buildconf on Windows and compare embedded configure evidence",
+    "Inventory corresponding source and patches for every statically linked library; archive build dependencies and license texts",
+    "Validate GPL version and redistribution obligations for media binary aggregate",
+    "Exercise uncommon codecs, cancellation, disk full and Windows paths"
+  ],
+  "archiveLicense": "GPL version 3; --enable-gpl --enable-version3. Component obligations remain under review.",
+  "invocationBoundary": "src/main/ffmpeg.ts starts ffmpeg/ffprobe with execa; FFmpeg DLLs are loaded by the separate ffmpeg/ffprobe executables. The JavaScript application does not link libav*.",
+  "applicationLicense": "GPL-2.0-only",
+  "excludedNativeFiles": [
+    {
+      "path": "bin/ffplay.exe",
+      "sizeBytes": 18722304,
+      "sha256": "0d4b18b7d87eba33b919081e8d70319e52d1a1109b149bd286133e207036e32a"
+    }
+  ]
+}

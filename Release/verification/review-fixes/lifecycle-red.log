@@ -1,0 +1,56 @@
+
+ RUN  v4.1.11 /Users/hashfunction/workspace/project_app_factory/microsoft-store/apps/cutquay/source
+
+ ❯ src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx (8 tests | 2 failed) 5876ms
+   × reports a cancelled native attachment and leaves later tracks unattempted while preserving prior output 12ms
+   × rejects a missing native attachment output and records subsequent tracks as unattempted 33ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > reports a cancelled native attachment and leaves later tracks unattempted while preserving prior output
+AssertionError: expected [ 'cancelled' ] to deeply equal [ 'cancelled', 'not_attempted' ]
+
+- Expected
++ Received
+
+  [
+    "cancelled",
+-   "not_attempted",
+  ]
+
+ ❯ src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx:224:76
+    222|   const report = JSON.parse(await readFile(reportPath!, 'utf8'));
+    223|   expect(report.status).toBe('cancelled');
+    224|   expect(report.outputs.map((output: ExportItemOutcome) => output.stat…
+       |                                                                            ^
+    225|   expect(await readFile(report.outputs[0].path, 'utf8')).toBe('attachm…
+    226|   expect((await readdir(dir)).some((name) => name.startsWith('.cutquay…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx > rejects a missing native attachment output and records subsequent tracks as unattempted
+AssertionError: expected [ 'failed' ] to deeply equal [ 'failed', 'not_attempted' ]
+
+- Expected
++ Received
+
+  [
+    "failed",
+-   "not_attempted",
+  ]
+
+ ❯ src/renderer/src/hooks/useFfmpegOperations.integration.test.tsx:238:76
+    236|   const report = JSON.parse(await readFile(reportPath!, 'utf8'));
+    237|   expect(report.status).toBe('failed');
+    238|   expect(report.outputs.map((output: ExportItemOutcome) => output.stat…
+       |                                                                            ^
+    239|   expect(await readFile(report.outputs[0].path).catch(() => undefined)…
+    240|   expect((await readdir(dir)).some((name) => name.startsWith('.cutquay…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 6 passed (8)
+   Start at  00:25:17
+   Duration  6.13s (transform 171ms, setup 0ms, import 166ms, tests 5.88s, environment 0ms)

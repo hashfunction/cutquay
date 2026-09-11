@@ -1,0 +1,88 @@
+import { Fragment, memo, useMemo, useState } from 'react';
+import type { MotionStyle } from 'motion/react';
+import { motion } from 'motion/react';
+import { FaMouse } from 'react-icons/fa';
+import { useTranslation, Trans } from 'react-i18next';
+
+import SetCutpointButton from './components/SetCutpointButton';
+import SimpleModeButton from './components/SimpleModeButton';
+import useUserSettings from './hooks/useUserSettings';
+import type { StateSegment } from './types';
+import type { KeyBinding } from '../../common/types';
+import { splitKeyboardKeys } from './util';
+import { getModifier } from './hooks/useTimelineScroll';
+import Kbd from './components/Kbd';
+
+
+function Keys({ keys }: { keys: string | undefined }) {
+  if (keys == null || keys === '') {
+    return <kbd>UNBOUND</kbd>;
+  }
+  const split = splitKeyboardKeys(keys);
+  return split.map((key, i) => (
+    <Fragment key={key}><Kbd code={key} />{i < split.length - 1 && <span style={{ fontSize: '.7em', marginLeft: '-.2em', marginRight: '-.2em' }}>{' + '}</span>}</Fragment>
+  ));
+}
+
+const dropzoneStyle: MotionStyle = {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  top: 0,
+  bottom: 0,
+  color: 'var(--gray-12)',
+  margin: '2em',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  whiteSpace: 'nowrap',
+  borderWidth: '.7em',
+  borderStyle: 'dashed',
+  borderColor: 'var(--gray-3)',
+};
+
+function NoFileLoaded({ currentCutSeg, onClick, keyBindingByAction }: {
+  currentCutSeg: StateSegment | undefined,
+  onClick: () => void,
+  keyBindingByAction: Record<string, KeyBinding>,
+}) {
+  const { t } = useTranslation();
+  const { simpleMode, segmentMouseModifierKey } = useUserSettings();
+  const [dragging, setDragging] = useState(false);
+
+  const currentCutSegOrDefault = useMemo(() => currentCutSeg ?? { segColorIndex: 0 }, [currentCutSeg]);
+
+  return (
+    <motion.div
+      className="no-user-select"
+      style={dropzoneStyle}
+      animate={{ borderColor: dragging ? 'var(--gray-9)' : 'var(--gray-3)' }}
+      onDragOver={() => setDragging(true)}
+      onDragLeave={() => setDragging(false)}
+      role="button"
+      onClick={onClick}
+    >
+      <div style={{ fontSize: '1.7em', textTransform: 'uppercase', color: 'var(--gray-11)', marginBottom: '.1em' }}>{t('DROP FILE(S)')}</div>
+
+      <div style={{ fontSize: '1.3em', color: 'var(--gray-11)', marginBottom: '.1em' }}>
+        <Trans>See <b>Help</b> menu for help</Trans>
+      </div>
+
+      <div style={{ fontSize: '1.3em', color: 'var(--gray-11)' }}>
+        <Trans><SetCutpointButton currentCutSeg={currentCutSegOrDefault} side="start" style={{ verticalAlign: 'middle' }} /> <SetCutpointButton currentCutSeg={currentCutSegOrDefault} side="end" style={{ verticalAlign: 'middle' }} />, <Keys keys={keyBindingByAction['setCutStart']?.keys} /> <Keys keys={keyBindingByAction['setCutEnd']?.keys} /> or <span><kbd style={{ marginRight: '.1em' }}>{getModifier(segmentMouseModifierKey)}</kbd></span>+<FaMouse style={{ marginRight: '.1em', verticalAlign: 'middle' }} /> to set cutpoints</Trans>
+      </div>
+
+      <div style={{ fontSize: '1.3em', color: 'var(--gray-11)' }} role="button" onClick={(e) => e.stopPropagation()}>
+        {simpleMode ? (
+          <Trans><SimpleModeButton style={{ verticalAlign: 'middle' }} /> to show advanced view</Trans>
+        ) : (
+          <Trans><SimpleModeButton style={{ verticalAlign: 'middle' }} /> to show simple view</Trans>
+        )}
+      </div>
+
+    </motion.div>
+  );
+}
+
+export default memo(NoFileLoaded);
