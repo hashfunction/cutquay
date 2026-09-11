@@ -21,3 +21,5 @@ node_modules
 /common-ts-dist
 
 tsconfig.*.tsbuildinfo
+/build-evidence/
+/script/msix/__pycache__/

@@ -8,15 +8,22 @@ permissions:
 jobs:
   windows-x64:
     runs-on: windows-2025
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          architecture: x64
       - name: Qualify actual Windows media runtime and application
         shell: pwsh
         run: ./script/qualifyWindows.ps1
+      - name: Qualify disposable MSIX installation and broker activation
+        shell: pwsh
+        run: ./script/qualifyWindowsMsix.ps1
       - name: Preserve qualification metadata only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -26,5 +33,9 @@ jobs:
             build-evidence/*.json
             build-evidence/*.txt
             build-evidence/*.xml
+            build-evidence/msix-install/*.json
+            build-evidence/msix-install/*.txt
+            build-evidence/msix-install/*.log
+            build-evidence/msix-install/*.png
           retention-days: 14
           if-no-files-found: error

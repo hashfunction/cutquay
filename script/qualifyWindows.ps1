@@ -7,6 +7,10 @@ function Run-Yarn([string[]]$Arguments) {
   & node $yarn @Arguments
   if ($LASTEXITCODE -ne 0) { throw "Yarn failed: $Arguments" }
 }
+$sourceCommit = (git rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0 -or $sourceCommit -cne $env:GITHUB_SHA) { throw 'Native source commit differs from this run.' }
+$dirty = git status --porcelain --untracked-files=all
+if ($LASTEXITCODE -ne 0 -or $dirty) { throw 'Qualification must start from a clean source checkout.' }
 New-Item -ItemType Directory -Force build-evidence | Out-Null
 Run-Yarn @('install', '--immutable')
 Run-Yarn @('download-ffmpeg-win32-x64')
@@ -26,6 +30,7 @@ Run-Yarn @('lint')
 Run-Yarn @('test', 'run', '--reporter=default', '--reporter=junit', '--outputFile=build-evidence/tests.xml')
 Run-Yarn @('check-licenses')
 Run-Yarn @('generate-licenses')
+$noticeHash = (Get-FileHash licenses.txt -Algorithm SHA256).Hash.ToLowerInvariant()
 $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
 Run-Yarn @('pack-win-dir')
 $executable = (Resolve-Path 'dist/win-unpacked/CutQuay.exe').Path
@@ -36,9 +41,10 @@ try {
     Start-Sleep -Milliseconds 500
     $process.Refresh()
     if ($process.HasExited) { throw "CutQuay exited during startup: $($process.ExitCode)" }
-  } until ($process.MainWindowHandle -ne 0 -or (Get-Date) -gt $deadline)
+  } until (($process.MainWindowHandle -ne 0 -and $process.MainWindowTitle -ceq 'CutQuay 1.0.0') -or (Get-Date) -gt $deadline)
   if ($process.MainWindowHandle -eq 0) { throw 'No CutQuay native main window appeared.' }
-  @{ source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); windows_native_startup=$true; executable_sha256=(Get-FileHash $executable -Algorithm SHA256).Hash; window_title=$process.MainWindowTitle; ffmpeg_version=$pin.version; native_source_clearance=$false; interactive_acceptance=$false; msix_built=$false; submitted=$false } | ConvertTo-Json | Set-Content build-evidence/windows-startup.json -Encoding utf8NoBOM
+  if ($process.MainWindowTitle -cne 'CutQuay 1.0.0') { throw "Unexpected native startup title: $($process.MainWindowTitle)" }
+  @{ generated_notices_sha256=$noticeHash; source_commit=$env:GITHUB_SHA; generated_at_utc=[DateTime]::UtcNow.ToString('o'); windows_native_startup=$true; executable_sha256=(Get-FileHash $executable -Algorithm SHA256).Hash; window_title=$process.MainWindowTitle; ffmpeg_version=$pin.version; native_source_clearance=$false; interactive_acceptance=$false; msix_built=$false; submitted=$false } | ConvertTo-Json | Set-Content build-evidence/windows-startup.json -Encoding utf8NoBOM
 } finally {
   if (-not $process.HasExited) {
     $process.CloseMainWindow() | Out-Null
