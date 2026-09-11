@@ -55,25 +55,49 @@ Its module list was gone, yielding the missing `FileName` property error.
 The regression forces each actual native command to finish before image
 observation and reproduces that same failure against the preceding source.
 
-The executable name now comes from `QueryFullProcessImageNameW` through the
-original retained `SafeProcessHandle`, and the receipt retains that observed
-path. There is no PID reopen or requested-path fallback in production. The exact
-installed executable path, package identity, before/after executable and media
-DLL hashes, exit code, output, error and owned cleanup checks remain required.
-An invalid handle, query error, foreign image or foreign package fails closed.
-The broker's persistent consumer UI process checks are unchanged.
+The subsequent source `2dd4a29ac004c1f6f17616eef4f4f736511b7c7b` used
+`QueryFullProcessImageNameW` through the original retained `SafeProcessHandle`.
+Windows run `34640478541` then failed in `workflow-generate`, also before actual
+installation: the native image query itself failed after a short-lived command.
+Keeping the original handle did not establish that every post-exit query would
+succeed. That failed run retained only the earlier startup/test/media-runtime
+metadata, not installed workflow acceptance.
+
+For these synchronous media commands, the execution contract is now the exact
+preverified executable passed to `ProcessStartInfo`, successful `Process.Start`
+with its original handle retained, actual output/exit and unchanged executable
+and media DLL hashes after execution. The native helper is compiled before
+launch. Image and package queries still use that original handle; a returned
+foreign image or package remains fatal, including after exit. A query exception
+is fatal while the same process is observed running. Only after observing exit
+with `WaitForExit(0)` may its failed query be recorded as
+`unavailable_after_observed_exit`, with a null observed value, actual exception
+type/message and native error code. There is no PID reopen or requested-path
+fallback. An invalid retained handle still fails.
+
+Receipts distinguish `launch_executable_path` from nullable
+`process_image_path`, and distinguish expected parent package context from
+nullable child `package_full_name`. Each `process_identity` observation records
+its status and error. The parent worker is independently verified in its package
+context and launched with `PreventBreakaway`; this does not fabricate an
+unavailable child observation. The broker's persistent consumer UI process,
+module, ownership and cleanup requirements are unchanged.
 
 The updated real media fixture generates, probes and decodes actual H.264/AAC,
-forces all three commands to exit before the image query, rejects wrong package,
-wrong path and image-query failures without success receipts, and exercises
-the actual C# invalid-handle rejection. On macOS only the unavailable Windows
+forces all three commands to exit before the image query, rejects wrong package
+and wrong path without success receipts, and exercises the actual C#
+invalid-handle rejection. It also invokes real FFprobe with an adapted post-exit
+query failure and checks its output/exit and persisted null/error fields. Eight
+separate real subprocess cases cover observed identities, one or both unavailable
+queries, returned mismatches after exit and image/package failures while alive,
+including retention of the same open handle. On macOS the unavailable Windows
 image API is adapted; the fixture package-identity adapter is explicit on both
 platforms. The Windows test uses the production image API after termination.
 Nine real worker scenarios, the owned-process/foreign-process fixture, six
 installation orchestration scenarios and the actual failed-start fixture also
 passed locally with PowerShell 7.6.6 and Homebrew FFmpeg 9.0.1. Actual Windows
-post-exit image observation and installed workflow acceptance still require a
-fresh native run; local adapters establish neither fact.
+observation results and installed workflow acceptance still require a fresh
+native run; local adapters establish neither fact.
 
 Primary Windows API/lifetime references:
 - https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-queryfullprocessimagenamew
@@ -83,8 +107,8 @@ Primary Windows API/lifetime references:
 The first API queries an image name from an authorized process handle. Windows
 retains the process object while handles remain open, although its executable
 code and module list have been removed at termination. These references explain
-the API choice; the required Windows regression must establish its actual
-post-exit behavior in the qualification environment.
+the API choice, without guaranteeing post-exit query availability. The required
+Windows regression retains its actual observed or unavailable result.
 
 ## Local verification and execution handoff
 
@@ -93,6 +117,7 @@ Run the focused checks from the committed source root:
 ```sh
 node --test script/msix/testWorkflowUi.mjs
 pwsh -NoLogo -NoProfile -File script/msix/test_workflow_media.ps1
+pwsh -NoLogo -NoProfile -File script/msix/test_media_identity.ps1
 pwsh -NoLogo -NoProfile -File script/msix/test_workflow_ownership.ps1
 pwsh -NoLogo -NoProfile -File script/msix/test_package_media.ps1
 ```

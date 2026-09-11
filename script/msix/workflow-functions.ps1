@@ -8,6 +8,34 @@ function Assert-WorkflowDirectory([string]$Path) {
     $current=Get-Item -LiteralPath $Path -Force
     while($current){if(-not $current.PSIsContainer -or $current.LinkType -or ($current.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw "Linked/invalid workflow directory: $($current.FullName)"};$parent=$current.Parent;$current=if($parent){Get-Item -LiteralPath $parent.FullName -Force}else{$null}}
 }
+function Get-WorkflowProcessIdentity([Diagnostics.Process]$Process,[string]$Executable,[string]$PackageFullName) {
+    if($Process.SafeHandle.IsInvalid -or $Process.SafeHandle.IsClosed){throw 'Workflow process lacks its original retained handle.'}
+    $result=[ordered]@{process_id=$Process.Id;handle_origin='successful Process.Start; original handle retained'}
+    foreach($kind in @('package','image')){
+        $observation=[ordered]@{status='observed';value=$null;error=$null;process_exit_observed=$false}
+        try{
+            $observation.value=if($kind -eq 'image'){Get-CutQuayProcessImageName $Process}else{Get-CutQuayProcessPackageName $Process}
+        }catch{
+            $queryException=$_.Exception.GetBaseException()
+            $code=if($queryException -is [ComponentModel.Win32Exception]){$queryException.NativeErrorCode}else{$null}
+            $observation.error=[ordered]@{type=$queryException.GetType().FullName;message=$queryException.Message;native_error_code=$code}
+            # An open handle preserves the process object, not every query's
+            # availability after exit. Observe exit on this same original
+            # handle; never reopen by PID or manufacture an observed path.
+            $observation.process_exit_observed=$Process.WaitForExit(0)
+            if(-not $observation.process_exit_observed){throw "Workflow $kind query failed while the retained process remained running (native error $code): $($queryException.Message)"}
+            $observation.status='unavailable_after_observed_exit'
+            $observation.value=$null
+        }
+        # A returned mismatch is always fatal, even if the process has exited.
+        if($observation.status -ceq 'observed'){
+            if($kind -eq 'package' -and $observation.value -cne $PackageFullName){throw 'Workflow media lacks exact installed package identity.'}
+            if($kind -eq 'image' -and (-not $observation.value -or (Get-CanonicalPath $observation.value) -ine (Get-CanonicalPath $Executable))){throw 'Workflow media executable differs from installed path.'}
+        }
+        $result[$kind]=$observation
+    }
+    return $result
+}
 function Invoke-WorkflowNative([Collections.IDictionary]$State,[string]$Name,[string[]]$Arguments,[string]$Label) {
     $relative="resources/$Name.exe";$executable=Join-Path $State.installed.InstallLocation $relative
     $expected=Get-RecordPayloadEntry $State.record $relative
@@ -16,19 +44,23 @@ function Invoke-WorkflowNative([Collections.IDictionary]$State,[string]$Name,[st
     # their actual bytes immediately around this separate process operation.
     $mediaRows=@($State.record.payload.PSObject.Properties | Where-Object {$_.Name -match '^resources/(ffmpeg|ffprobe)\.exe$|^resources/(avcodec|avdevice|avfilter|avformat|avutil|swresample|swscale)-[0-9]+\.dll$'})
     foreach($row in $mediaRows){$null=Assert-FileMatchesRecord (Join-Path $State.installed.InstallLocation $row.Name) $row.Value $row.Name}
+    # Compile the native observation helper before a short-lived process starts;
+    # correctness still permits explicitly unavailable observations after exit.
+    Add-CutQuayActivationTypes
     $start=[Diagnostics.ProcessStartInfo]::new($executable);$start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
     foreach($arg in $Arguments){$start.ArgumentList.Add($arg)}
     $candidate=[Diagnostics.Process]::new();$candidate.StartInfo=$start
     try{if(-not $candidate.Start()){throw 'Media process did not start.'}}catch{$candidate.Dispose();throw}
     $State.mediaProcess=$candidate;$null=$candidate.Handle
     $stdout=$candidate.StandardOutput.ReadToEndAsync();$stderr=$candidate.StandardError.ReadToEndAsync()
-    $actualPackage=Get-CutQuayProcessPackageName $candidate
-    if($actualPackage -cne [string]$State.installed.PackageFullName){throw 'Workflow media lacks exact installed package identity.'}
-    $actualImage=Get-CutQuayProcessImageName $candidate
-    if((Get-CanonicalPath $actualImage) -ine (Get-CanonicalPath $executable)){throw 'Workflow media executable differs from installed path.'}
+    $identity=Get-WorkflowProcessIdentity $candidate $executable ([string]$State.installed.PackageFullName)
     if(-not $candidate.WaitForExit(60000)){throw "Workflow $Label timed out."}
     $out=$stdout.GetAwaiter().GetResult();$err=$stderr.GetAwaiter().GetResult()
-    $receipt=[ordered]@{program=$relative;executable_sha256=$hash;process_image_path=$actualImage;arguments=$Arguments;package_full_name=$actualPackage;exit_code=$candidate.ExitCode;stdout=$out;stderr=$err}
+    $receipt=[ordered]@{program=$relative;executable_sha256=$hash;launch_executable_path=$start.FileName;
+        process_image_path=$identity.image.value;arguments=$Arguments;package_full_name=$identity.package.value;
+        process_identity=$identity;expected_parent_package_context=[string]$State.installed.PackageFullName;
+        package_context_basis='Expected context of the separately verified parent worker; not a substitute for observed child package identity';
+        exit_code=$candidate.ExitCode;stdout=$out;stderr=$err}
     try{Write-NewUtf8Json (Join-Path $State.output ($Label+'-native.json')) $receipt}catch{throw "Native workflow reporting failed: $($_.Exception.Message); command exit: $($candidate.ExitCode); stderr: $err"}
     if($candidate.ExitCode -ne 0){throw "Workflow $Label failed with $($candidate.ExitCode): $err"}
     foreach($row in $mediaRows){$null=Assert-FileMatchesRecord (Join-Path $State.installed.InstallLocation $row.Name) $row.Value $row.Name}

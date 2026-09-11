@@ -17,6 +17,7 @@ Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_me
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_package_media.ps1')
 Invoke-Checked node @('--test','script/msix/testWorkflowUi.mjs')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_workflow_media.ps1')
+Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_media_identity.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_workflow_ownership.ps1')
 $sourceCommit = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceCommit -cne $env:GITHUB_SHA) { throw 'Source commit differs from this qualification run.' }

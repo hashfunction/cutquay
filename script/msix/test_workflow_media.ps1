@@ -38,26 +38,39 @@ try {
     if(-not $verified.decoded -or $verified.probe.streams.Count -ne 2){throw 'Real output probe/decode not observed'}
     if($script:endedBeforeImageQuery -ne 3){throw 'All three native commands must exit before their image query.'}
     $native=Get-Content (Join-Path $state.output 'probe-output-native.json') -Raw | ConvertFrom-Json
-    if((Get-CanonicalPath $native.process_image_path) -ine (Get-CanonicalPath (Join-Path $root 'resources/ffprobe.exe'))){throw 'Observed native image path was not retained in evidence.'}
+    if($native.process_identity.image.status -ceq 'observed'){
+        if((Get-CanonicalPath $native.process_image_path) -ine (Get-CanonicalPath (Join-Path $root 'resources/ffprobe.exe'))){throw 'Observed native image path was not retained in evidence.'}
+    }elseif($native.process_identity.image.status -cne 'unavailable_after_observed_exit' -or $null -ne $native.process_image_path -or
+        -not $native.process_identity.image.error -or -not $native.process_identity.image.process_exit_observed){throw 'Unavailable post-exit observation was not recorded honestly.'}
     $request.outputSha256='0'*64;$failed=$false;try{Test-WorkflowMedia $state $request | Out-Null}catch{$failed=$true}
     if(-not $failed){throw 'Changed output hash accepted'}
     $request.outputSha256=(Get-FileHash $request.output).Hash.ToLowerInvariant();$request.output=$request.fixture;$failed=$false;try{Test-WorkflowMedia $state $request | Out-Null}catch{$failed=$true}
     if(-not $failed){throw 'Source accepted as exported destination'}
     $imageQuery=${function:Get-CutQuayProcessImageName}
-    foreach($case in @('wrong-package','wrong-image','query-error')){
+    foreach($case in @('wrong-package','wrong-image')){
         try{
             $script:fixturePackage=if($case -eq 'wrong-package'){'other-package'}else{'fixture-package'}
             if($case -eq 'wrong-image'){function Get-CutQuayProcessImageName($Process){return (Join-Path $root 'foreign.exe')}}
-            if($case -eq 'query-error'){function Get-CutQuayProcessImageName($Process){throw 'native image query failed'}}
             $failure=$null
             try{Invoke-WorkflowNative $state 'ffprobe' @('-version') $case | Out-Null}catch{$failure=$_.Exception.Message}
-            $expected=@{'wrong-package'='exact installed package identity';'wrong-image'='differs from installed path';'query-error'='native image query failed'}[$case]
+            $expected=@{'wrong-package'='exact installed package identity';'wrong-image'='differs from installed path'}[$case]
             if(-not $failure -or $failure -notmatch $expected -or (Test-Path (Join-Path $state.output ($case+'-native.json')))){throw "Identity failure was accepted or lost: $case / $failure"}
         } finally {
             Set-Item Function:Get-CutQuayProcessImageName $imageQuery
             if($state.mediaProcess){if(-not $state.mediaProcess.HasExited){$state.mediaProcess.Kill();$null=$state.mediaProcess.WaitForExit(10000)};$state.mediaProcess.Dispose();$state.mediaProcess=$null}
         }
     }
+    try{
+        $script:fixturePackage='fixture-package'
+        function Get-CutQuayProcessImageName($Process){throw [ComponentModel.Win32Exception]::new(31,'fixture unavailable image after exit')}
+        $completed=Invoke-WorkflowNative $state 'ffprobe' @('-version') 'unavailable-image'
+        if($completed.exit_code -ne 0 -or $completed.stdout -notmatch 'ffprobe version' -or $null -ne $completed.process_image_path -or
+            $completed.process_identity.image.error.native_error_code -ne 31 -or
+            $completed.process_identity.image.status -cne 'unavailable_after_observed_exit' -or
+            (Get-CanonicalPath $completed.launch_executable_path) -ine (Get-CanonicalPath (Join-Path $root 'resources/ffprobe.exe'))){throw 'Completed exact tool execution fabricated/lost its unavailable image observation.'}
+        $saved=Get-Content (Join-Path $state.output 'unavailable-image-native.json') -Raw | ConvertFrom-Json
+        if($null -ne $saved.process_image_path -or $saved.process_identity.image.error.native_error_code -ne 31){throw 'Saved identity observation differs from the executed result'}
+    }finally{Set-Item Function:Get-CutQuayProcessImageName $imageQuery}
     Add-CutQuayActivationTypes
     $invalid=[Microsoft.Win32.SafeHandles.SafeProcessHandle]::new([IntPtr]::Zero,$false)
     try{
@@ -66,6 +79,6 @@ try {
         if($failure -notmatch 'retained process handle'){throw "Invalid handle was not rejected: $failure"}
     }finally{$invalid.Dispose()}
     'PASS: real native generate/probe/decode with forced exit before image query, identity failures, invalid handle, preserved inputs and output hash/alias checks.'
-    if($IsWindows){'PASS: actual Windows QueryFullProcessImageNameW observed each terminated native process through its original retained handle.'}
+    if($IsWindows){'PASS: real Windows post-exit image-query results retained as observed or explicitly unavailable; exact tool path/hash/output/exit remain required.'}
     else{'LIMIT: Windows package/image APIs are adapters on macOS; no Windows identity or installed UI claim.'}
 } finally { if(Get-Variable state -ErrorAction SilentlyContinue){if($state.mediaProcess -and -not $state.mediaProcess.HasExited){$state.mediaProcess.Kill();$null=$state.mediaProcess.WaitForExit(10000)}};Remove-Item $root -Recurse -Force }
