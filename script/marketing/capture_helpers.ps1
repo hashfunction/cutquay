@@ -93,12 +93,24 @@ function Complete-MarketingCleanup($State){
     foreach($name in $operations.Keys){try{& $operations[$name]}catch{$State.cleanupErrors.Add(($name+': '+$_.Exception.Message).Substring(0,[Math]::Min(2048,($name+': '+$_.Exception.Message).Length)))}}
 }
 
+function Copy-MarketingMediaTool([string]$Source,[string]$Destination,$Expected){
+    $null=Assert-FileMatchesRecord $Source $Expected 'Installed standalone media tool source'
+    [IO.File]::Copy($Source,$Destination,$false)
+    $null=Assert-FileMatchesRecord $Destination $Expected 'Standalone media tool copy'
+    $null=Assert-FileMatchesRecord $Source $Expected 'Installed media tool source after copy'
+    return $Destination
+}
+
 function Invoke-MarketingMedia($State,[string]$Media,[string]$Phase){
     $results=[ordered]@{}
     foreach($kind in @('probe','decode')){
         $name=if($kind -ceq 'probe'){'ffprobe'}else{'ffmpeg'}
-        $program=Join-Path $State.installed.InstallLocation "resources/$name.exe"
-        $programHash=Assert-FileMatchesRecord $program (Get-RecordPayloadEntry $State.record "resources/$name.exe") 'Screenshot media tool'
+        $installedProgram=Join-Path $State.installed.InstallLocation "resources/$name.exe"
+        $expected=Get-RecordPayloadEntry $State.record "resources/$name.exe"
+        # WindowsApps disallows external direct process launch. This already
+        # standalone media check runs an exact owned copy, never changing ACLs.
+        $program=Copy-MarketingMediaTool $installedProgram (Join-Path $State.temporary "$Phase-$name.exe") $expected
+        $programHash=Assert-FileMatchesRecord $program $expected 'Screenshot media tool'
         $arguments=if($kind -ceq 'probe'){@('-v','error','-show_streams','-show_format','-of','json',$Media)}else{@('-hide_banner','-loglevel','error','-nostdin','-xerror','-i',$Media,'-map','0:v:0','-map','0:a:0','-f','null','-')}
         $info=[Diagnostics.ProcessStartInfo]::new($program);$info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
         foreach($arg in $arguments){$info.ArgumentList.Add($arg)}
@@ -108,7 +120,7 @@ function Invoke-MarketingMedia($State,[string]$Media,[string]$Phase){
         $out=$stdout.GetAwaiter().GetResult();$err=$stderr.GetAwaiter().GetResult()
         if($out.Length -gt 1048576 -or $err.Length -gt 65536){throw 'Screenshot media output exceeds bound.'}
         $result=[ordered]@{purpose='standalone media observation only; no package-context or qualification claim';executable=$program;executable_sha256=$programHash;
-            arguments=$arguments;process_id=$process.Id;exit_code=$process.ExitCode;stdout=$out;stderr=$err;input=(Get-WorkflowFileRecord $Media)}
+            arguments=$arguments;process_id=$process.Id;exit_code=$process.ExitCode;stdout=$out;stderr=$err;input=(Get-WorkflowFileRecord $Media);installed_source=$installedProgram;standalone_copy_verified=$true}
         Write-NewUtf8Json (Join-Path $State.output "$Phase-$kind.json") $result
         if($process.ExitCode -ne 0){throw "Actual screenshot media $kind failed: $err"}
         $null=Assert-FileMatchesRecord $program (Get-RecordPayloadEntry $State.record "resources/$name.exe") 'Screenshot media tool'
