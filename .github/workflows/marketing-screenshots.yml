@@ -1,0 +1,52 @@
+name: CutQuay real product screenshots
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture-existing-store-package:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: bd28e72559ee8c06cc320e8c02b82ddb79ef353d
+          path: qualified-source
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - name: Verify screenshot-only helper regressions
+        shell: pwsh
+        run: |
+          python -m unittest discover -s script/marketing -p 'test_*.py'
+          if ($LASTEXITCODE -ne 0) { throw 'Capture provenance regression failed.' }
+          node --test script/marketing/test_captureUi.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Capture UI regression failed.' }
+          ./script/marketing/test_capture_helpers.ps1
+          ./script/marketing/test_display_modes.ps1
+      - name: Fetch exact existing Store artifact and licensed film
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python script/marketing/prepare_capture.py --output "$env:RUNNER_TEMP/cutquay-capture-inputs" --qualified-source qualified-source
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned screenshot inputs did not verify.' }
+      - name: Capture real installed UI and close/uninstall normally
+        shell: pwsh
+        run: ./script/marketing/capture.ps1 -Inputs "$env:RUNNER_TEMP/cutquay-capture-inputs" -QualifiedSource qualified-source -Output build-evidence/marketing
+      - name: Retain actual screenshots and provenance only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CutQuay-real-product-screenshots
+          path: |
+            build-evidence/marketing/**/*.png
+            build-evidence/marketing/**/*.json
+          retention-days: 14
+          if-no-files-found: warn
