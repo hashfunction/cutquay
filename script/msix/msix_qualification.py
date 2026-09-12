@@ -236,6 +236,11 @@ def validate_runtime(release, source, electron_archive, checksums, input_invento
 	with _regular_stream(source/'Release/FFmpeg-LICENSE.txt') as stream: notice = _digest(stream)
 	if input_inventory.get('resources/FFmpeg-LICENSE.txt') != notice: raise ValueError('FFmpeg notice missing/changed')
 	allowed.add('resources/FFmpeg-LICENSE.txt')
+	for name in ('NATIVE-SOURCES.txt','native-source-manifest.json','native-source-publication.json'):
+		with _regular_stream(source/'Release'/name) as stream: notice = _digest(stream)
+		target = 'resources/' + name
+		if input_inventory.get(target) != notice: raise ValueError(f'Native source notice missing/changed: {name}')
+		allowed.add(target)
 	locales = inventory_tree(source/'locales')
 	for name, measured in locales.items():
 		target = 'resources/locales/' + name
@@ -547,6 +552,8 @@ def verify_msix(path, expected, identity_mode='qualification'):
 	with zipfile.ZipFile(path) as archive:
 		for info in archive.infolist():
 			name = _decode_opc_path(info.filename.rstrip('/') if info.is_dir() else info.filename)
+			if name.casefold() == 'appxsignature.p7x':
+				raise ValueError('Unsigned qualification package contains a signature')
 			mode = info.external_attr >> 16
 			if info.flag_bits & 1:
 				raise ValueError(f'Encrypted package entry: {info.filename}')

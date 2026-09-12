@@ -868,6 +868,8 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         schema_version = 1
         generated_at_utc = [DateTime]::UtcNow.ToString('o')
         source_commit = if ($state.record) { [string]$state.record.sourceCommit } else { $null }
+        workflow_run_id = $env:GITHUB_RUN_ID
+        workflow_run_attempt = $env:GITHUB_RUN_ATTEMPT
         identity_mode = $IdentityMode
         qualification_identity_only = ($IdentityMode -ceq 'qualification')
         identity = $expectedIdentity

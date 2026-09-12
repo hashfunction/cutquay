@@ -1,4 +1,4 @@
-# Copyright 2026 Trieflow LLC. MIT. Disposable installation, metadata-only evidence.
+# Copyright 2026 Trieflow LLC. MIT. Disposable installation; verified unsigned Store export is a separate final gate.
 [CmdletBinding()]
 param([ValidateSet('qualification','store', IgnoreCase=$false)][string]$IdentityMode='qualification')
 $ErrorActionPreference = 'Stop'
@@ -11,6 +11,8 @@ function Invoke-Checked([string]$Program, [string[]]$Arguments) {
 }
 $powerShell = (Get-Process -Id $PID).Path
 Invoke-Checked python @('script/msix/test_msix_qualification.py')
+Invoke-Checked python @('script/msix/test_store_export.py')
+Invoke-Checked python @('script/msix/test_source_publication.py')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_qualify_msix_install.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_msix_evidence.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_store_identity.ps1')
@@ -40,3 +42,11 @@ $recordOutput=if ($IdentityMode -ceq 'store') {'build-evidence/msix-store-packag
 $installOutput=if ($IdentityMode -ceq 'store') {'build-evidence/msix-store-install'} else {'build-evidence/msix-install'}
 [IO.File]::Copy((Join-Path $packageOutput 'package-record.json'), (Join-Path (Get-Location) $recordOutput), $false)
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/qualify-msix-install.ps1','-Package',(Join-Path $packageOutput $packageName),'-PackageRecord',(Join-Path $packageOutput 'package-record.json'),'-SignTool',(Join-Path $sdkDirectory 'signtool.exe'),'-Output',$installOutput,'-IdentityMode',$IdentityMode)
+
+if ($IdentityMode -ceq 'store') {
+    Invoke-Checked python @('script/msix/export_store_package.py',
+        '--package',(Join-Path $packageOutput $packageName),'--source','.',
+        '--release','dist/win-unpacked','--artwork','icon-build/app-512.png',
+        '--electron-archive',(Join-Path $electronInput "electron-v$electronVersion-win32-x64.zip"),
+        '--checksums',(Join-Path $electronInput 'SHASUMS256.txt'),'--output','build-evidence/store-upload')
+}

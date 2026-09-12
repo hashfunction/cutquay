@@ -1,0 +1,579 @@
+{
+  "schema_version": 1,
+  "product": "CutQuay",
+  "source_only": true,
+  "source_page": "https://cutquay.trieflow.com/source",
+  "application_source_snapshot": "ad3dd791bd26a5e174b05b63a25b88087a8792f1",
+  "assets": [
+    {
+      "name": "cutquay-electron-ffmpeg-source-42.11.3.tar",
+      "bytes": 45107200,
+      "sha256": "a22ebf3f1e1ce1b5d42392c8afe38bae07683b5c124eb6edcbbee8ca02d40c84"
+    },
+    {
+      "name": "cutquay-ffmpeg-core-and-build-source.tar",
+      "bytes": 64952320,
+      "sha256": "8279d32043541de05e6a209818b9827f29f4805603f0ef26fd8acf80e0eb520a"
+    },
+    {
+      "name": "cutquay-ffmpeg-dependency-source-part-1.tar",
+      "bytes": 1049088000,
+      "sha256": "fc93e61e9e755ff52ed86a2ac9dec882cf51fb04da6978f20a59c78b5f890e8f"
+    },
+    {
+      "name": "cutquay-ffmpeg-dependency-source-part-2.tar",
+      "bytes": 1049067520,
+      "sha256": "6f86228ab9626866183f503e8bc5261fd2c54148b5bb4b85bd8b8f8b78c83845"
+    }
+  ],
+  "command_line_ffmpeg": {
+    "commit": "7ba069f4f11d126f52a740156dbab6476a8a865a",
+    "binary_archive_sha256": "0961405dc6d372aa0f137449c628816af2837e4732bd706eca307fb7dfbab6dc",
+    "license": "GPL-3.0",
+    "dependency_source_files": [
+      {
+        "path": ".cache/downloads/10-glib_2345eb575abe4e65d06b8c4d33b9af85b1a6d98f1e74bc62e03cfd5fc3e02fb4.tar.xz",
+        "bytes": 15651980,
+        "sha256": "31b56aa1e81aaf8380169b5644a8806bb82b8f3e2a8a9049e26a441cbaa48cfe"
+      },
+      {
+        "path": ".cache/downloads/10-mingw-std-threads_f6fe5dc5a067e90cd8b37a748b33962ac2eb09f3b486b287265803070dbf02d2.tar.xz",
+        "bytes": 86260,
+        "sha256": "ba58f654321fbe6ddf3f5a5cf15e2ebb3131d1e94d52d387bb6586c1e6244f10"
+      },
+      {
+        "path": ".cache/downloads/10-mingw_085e09c5ef82fb3dcde052a2f5de92445435bea8d3766db035b6d5483d3eacf9.tar.xz",
+        "bytes": 63737544,
+        "sha256": "b6e6c19dd384cff72cffc78be1b192407a486c36539216070c266bec266f45e4"
+      },
+      {
+        "path": ".cache/downloads/20-cairo_6e56413e573ab2effdfa2dd4e492de2df1c824f14da0fb44552bec3c97772a74.tar.xz",
+        "bytes": 76753368,
+        "sha256": "a95271756043839c4e8f009f12680d6a293858e36247110fe7dffd66e52a3a7e"
+      },
+      {
+        "path": ".cache/downloads/20-libiconv_a820eb1a2cb6f2232acc997f363eaf56b72c509dfd979fa029a13e9278f1872a.tar.xz",
+        "bytes": 15645400,
+        "sha256": "feb67b0b61e524cdf31b1ea13de27d3e229f03c6bcc552e58940e2a339abcb3a"
+      },
+      {
+        "path": ".cache/downloads/20-zlib_132d135e890f221364f5e66a4293ae247c65dd02d42b44d3ea02af0eeb35154a.tar.xz",
+        "bytes": 2857000,
+        "sha256": "66d6c31c0b6e5b572f6ad5cdf0a60312d7bcf4c6771f40ffdee25d9b602d97ec"
+      },
+      {
+        "path": ".cache/downloads/25-fftw3_f590d55efb2139d10bea09f7f3542f648290d35fc2ecb3122d6896bf2af049e3.tar.xz",
+        "bytes": 1155644,
+        "sha256": "7160dbfd917fd6711306cff3aac1e3d5ccc76585be0ec063cd97b2aff6f61fa3"
+      },
+      {
+        "path": ".cache/downloads/25-freetype_3617370b1dcde7476f60c6ba4fa9936d9dffa84a83db01be118439c6f7ea2c44.tar.xz",
+        "bytes": 4533512,
+        "sha256": "147bd19297d01e5f392ed4e203f04778135eaae4ad3c40a137d30e6bf0571f4f"
+      },
+      {
+        "path": ".cache/downloads/25-fribidi_81b289b370baa994885c0e56a7929b51bbb80ba7574d0edaa629dda7a032ba58.tar.xz",
+        "bytes": 2649264,
+        "sha256": "199b7c4c8c23112f758a590271f405090f5fccd11de9da810e1aa8c9d3fe361b"
+      },
+      {
+        "path": ".cache/downloads/25-gmp_4b555c079737ef0f01f15976d7bbbff9d0dc94d7a06edd45d08a6cd2b60bdb86.tar.xz",
+        "bytes": 5562624,
+        "sha256": "11d14464f2c8403bb40dfbfc1763d7c9941f1273fae95e5d3f27e9e498694ed9"
+      },
+      {
+        "path": ".cache/downloads/25-libogg_bdea5ee518d129340be457dcc11c2cef63053ac3c827e71311caff1dd3c43339.tar.xz",
+        "bytes": 502596,
+        "sha256": "74d4ccca9000f449f02d1b5254425656a7d1843e356218b7d1e84cb1cbb79547"
+      },
+      {
+        "path": ".cache/downloads/25-libpng_f695ee41ddfc411ac8050d7d4ee5ec37a63db25183186f120bcfa6056d5e8b07.tar.xz",
+        "bytes": 2026124,
+        "sha256": "5783d300b871878ca518cd5ebf9d6a3b28fa9569b9f1803dd0909151a0b861e3"
+      },
+      {
+        "path": ".cache/downloads/25-libxml2_616eedaefdac4bc11ac6b560da97776a32faa86a4293e7c70fd443eca9ea9f80.tar.xz",
+        "bytes": 4849044,
+        "sha256": "9550f461bc68c399e2d946679dd680d184661c989814313394484a4cefa05710"
+      },
+      {
+        "path": ".cache/downloads/25-openssl_9b34fe90db7bf8486ec3d2bb51d8a347e64cdcbf340f615f8db1755c77156e65.tar.xz",
+        "bytes": 435254816,
+        "sha256": "4b6e24fce4705f1e7618a4343eb80cb3ba6711ebc4a6e1ec0de41c8c74e04801"
+      },
+      {
+        "path": ".cache/downloads/25-xz_373b29db9b20aa43988369e7b654a2ab7daf1c79c9a7171d039fdc0f2edc3f95.tar.xz",
+        "bytes": 2556288,
+        "sha256": "bd08601f8d1a79f715708ef66d58020493c53968bc5e9cd8ed5303a81746633e"
+      },
+      {
+        "path": ".cache/downloads/30-libdvdcss_8e6c469595eeef1d2ca7962b68faabe5531518009472d449f700665a616bc66c.tar.xz",
+        "bytes": 233016,
+        "sha256": "1575ad0395411414e0368f55047993059a4b77c441d3fd5179fdc2529af9905a"
+      },
+      {
+        "path": ".cache/downloads/30-pango_b498218297fc1f0d7e9985c61eac1e031f9ce628c95f14a90fca7930d9d61301.tar.xz",
+        "bytes": 4629704,
+        "sha256": "f2a636ebde2b4b2e9e199d7cb4494f1bde83e79f691c9025b96717b6c5c14be9"
+      },
+      {
+        "path": ".cache/downloads/35-fontconfig_656d09390348e307aa170d43ac674665ab0508eacc86601d9f5812e413fdf479.tar.xz",
+        "bytes": 1320172,
+        "sha256": "37d178fa821c157675acf800abc7272ca48982423f8bdcaeb6fa8ee7d6838090"
+      },
+      {
+        "path": ".cache/downloads/40-libdvdread_6a9029f598b07c8f1d9c6691b79cf5c3bbffee1b7a99fd3f65410ae663f65a37.tar.xz",
+        "bytes": 291500,
+        "sha256": "daef363a2571ff3b2ac2617e84543cd9678e39c13922d7ed50d86b25a0ecb636"
+      },
+      {
+        "path": ".cache/downloads/40-mbedtls_8dd146455b388b9a7236d83bb2904ff89bba41fa28da9af8a310fc01f4ff1b53.tar.xz",
+        "bytes": 14060020,
+        "sha256": "98d678a055d0316aa28ae96a4994c237ca6b0ea39ca5258d921490cd8070714a"
+      },
+      {
+        "path": ".cache/downloads/40-vulkan-headers_fe6a3585343162c3c350aee116b2c311fd11b66c0307422b7c204b1645bafde2.tar.xz",
+        "bytes": 5339724,
+        "sha256": "eaee567742ad9c897aeaa220e567934c9eca3aa43d5c20e2856a26a99b5a24ab"
+      },
+      {
+        "path": ".cache/downloads/45-brotli_f6d0fe763664761aac7c59dba98fff76310597c0f90a8f42f7631376d615e196.tar.xz",
+        "bytes": 57253644,
+        "sha256": "1374e23609f3f81ce8e34a09b971e5d1523d28982a694f0b5db89484573c84e7"
+      },
+      {
+        "path": ".cache/downloads/45-harfbuzz_596d9d91bebaf3c3a72bd614b9a1a386c1cd4ce7514760f428323369c5a1b304.tar.xz",
+        "bytes": 48521048,
+        "sha256": "58cee9e3868a5e1354af4f946386a73eec5ad926c51c2b09cf67a7847b9c044b"
+      },
+      {
+        "path": ".cache/downloads/45-lcms2_9bf96e71e5ca747e82781112fad718a036f4c45981112ebf3da56d896bd808ce.tar.xz",
+        "bytes": 8902592,
+        "sha256": "84b3acf6fb2513e3e11f705c50eb630d6970fcd7475855072271dab1a3cfd2e7"
+      },
+      {
+        "path": ".cache/downloads/45-libffi_a4a898f326ba3245333b394de219ca9bf67e5c48f7df5776fd6e1ea720ff792d.tar.xz",
+        "bytes": 1367940,
+        "sha256": "a88f5e8d7580ca2108835455cb731864bc126b7f250b2c010d7207e9fb363534"
+      },
+      {
+        "path": ".cache/downloads/45-libsamplerate_3ae5a3324e89da0d7254873085ad23e2b1a0cb22c1e330b8d3beb1da0a0c0273.tar.xz",
+        "bytes": 7083908,
+        "sha256": "1601b277485bb1a0b1007a262901e0c4db3f755f05843d6c45058e34642171db"
+      },
+      {
+        "path": ".cache/downloads/45-libudfread_025a841e2bc919a8fc0fe8d8290df4ff52e12e3d72cb7cbaaf7df6c7552c2a78.tar.xz",
+        "bytes": 151008,
+        "sha256": "1902008e6f5a367ce0a1412442ade75bfbba9f1d3f9cebfcc4b4725feddb0392"
+      },
+      {
+        "path": ".cache/downloads/45-libunibreak_b853ebf9bfeb5a24db32ac3024fcb2b90a1f6906e146295a9611ea367ef90197.tar.xz",
+        "bytes": 384664,
+        "sha256": "fdd97ead786918f178d6f0119bb6ba2de40e273d5bf6650123eb8bbad1b10e9c"
+      },
+      {
+        "path": ".cache/downloads/45-libvorbis_0ab43e5711b2585b0c19dd71023f5852d755c633bda0215caad53dc63c62a644.tar.xz",
+        "bytes": 2314604,
+        "sha256": "2c53453d993477e5f42cea0507e8bea3d69229028050bfde19b273c1d80af975"
+      },
+      {
+        "path": ".cache/downloads/45-opencl_eb9ead58354213261f2a045939284465ec36e0e3e052aa3b22e279002a94d002.tar.xz",
+        "bytes": 438424,
+        "sha256": "9b39ee95836d3b1b823652c20e89064f0d5d65e18689731196e9004232c75f47"
+      },
+      {
+        "path": ".cache/downloads/45-pcre2_a700553def1dbfd7ab6095b47ce1c0a5bfe2716e0f15e4b8b9aaf4af5942f4f9.tar.xz",
+        "bytes": 4742728,
+        "sha256": "51bea9bfe1053fff897d6a9b174c81770c65eff5a96d197d97ab000830353530"
+      },
+      {
+        "path": ".cache/downloads/45-pixman_e6e161e8443d76882f09d1595f4bcd452a4e4a06dee28d6caf6dc2fc893095fe.tar.xz",
+        "bytes": 1312616,
+        "sha256": "a79c983b8e39d8465d127d024736d9dede37ef14758bc1b3c9b93a32f24bfe97"
+      },
+      {
+        "path": ".cache/downloads/45-vmaf_7e0936eea87afd4c4582aca102f105349e760b2c04bba3880d2b82ddc9ec50bc.tar.xz",
+        "bytes": 34464688,
+        "sha256": "b15ff9284bbefe1601c9ddb4cd16aaca9e6d74ef33ff5c2ca1f3595f8364d039"
+      },
+      {
+        "path": ".cache/downloads/45-vulkan-loader_9737f99883713bfebd417a68bdd2d4046d3678249b723a676ac386da128fd315.tar.xz",
+        "bytes": 5349496,
+        "sha256": "3fe746b6826d9f236c9df6ed0f113b27364ebfaf9446092d63c3c508711c8b68"
+      },
+      {
+        "path": ".cache/downloads/50-amf_c691021656d6ced1df998c54494b9d1bb1aefecc1100af7f4b5d2d2ee89cad44.tar.xz",
+        "bytes": 4129648,
+        "sha256": "809cb8d37a475647b5e2c2c10246722db49ccb5dc4e3a94fbc44f5a90c7b8256"
+      },
+      {
+        "path": ".cache/downloads/50-aom_23565bf906e76056043bbf69491946f43e4a082de1c9448304970e7e1f38c77c.tar.xz",
+        "bytes": 11993388,
+        "sha256": "84a91ad800da6321e2f372995d8e5608eb0cc02c5a342bc8614a2ba5c4ef5340"
+      },
+      {
+        "path": ".cache/downloads/50-avisynth_7a21bb0ff397cafe4904c6be10b96944b5f19ea01e1871a76204ee0d384e7488.tar.xz",
+        "bytes": 20728124,
+        "sha256": "d913cbdfc330928803b4539bb508807db76f4d2a2f154cfa4869d8cab8927986"
+      },
+      {
+        "path": ".cache/downloads/50-chromaprint_fd1913f99597fe11aa0a070aaaee173d271d06a2578bd240a1e6f9d7e5d9e344.tar.xz",
+        "bytes": 2988336,
+        "sha256": "c680025c6e3f4450d5f3236ca62adb9f10c184204d38de21b5d5679710e1db62"
+      },
+      {
+        "path": ".cache/downloads/50-dav1d_c641f552ea978b810b07c1d57cb7e8a3fe53e7114439817aabc12815250a342f.tar.xz",
+        "bytes": 2959460,
+        "sha256": "d41f8cc750ce6a8cb9217327fedeb19bcb38651a28784f34301e9bcbbed57595"
+      },
+      {
+        "path": ".cache/downloads/50-davs2_a2d3a5d05dbd810e7a33f41ca77f70f1775ab8318ffe3e1b365105e8ad813d7e.tar.xz",
+        "bytes": 1795708,
+        "sha256": "97f7fbcb6e14ec208d5b8c1c609a460c340fdca6b7ff904f420bcceedbb75426"
+      },
+      {
+        "path": ".cache/downloads/50-ffnvcodec_ef2a38b483abf36f56dfe74a3ab3909ef01360a01619123b6a4cfac4eece7e28.tar.xz",
+        "bytes": 375060,
+        "sha256": "2b7515a40ae411440a00480430d62d72bcdafcb66b638eb6752344c99b163ab5"
+      },
+      {
+        "path": ".cache/downloads/50-freetype_3617370b1dcde7476f60c6ba4fa9936d9dffa84a83db01be118439c6f7ea2c44.tar.xz",
+        "bytes": 4532860,
+        "sha256": "8bf48b07602a91ab4ea39dbfc63e9180bcd01ea1648a74c626586436edafb93b"
+      },
+      {
+        "path": ".cache/downloads/50-frei0r_133425a6de12ece3f31f1fab0e5e228703fdffa3d347dcac946a9621531acbe7.tar.xz",
+        "bytes": 8099304,
+        "sha256": "41e57e026a0114ff89c7fb9b51dfc3a1619066df103d0117dd286a18d84f371f"
+      },
+      {
+        "path": ".cache/downloads/50-gme_0325438874b3d8664746a5dc5587ca3da46cd7c1ff911cd20f095fc3355618d5.tar.xz",
+        "bytes": 659908,
+        "sha256": "0e88e80112948c8a4c502da5c5642bc9f40c24ef191586568eaf5af252bf201f"
+      },
+      {
+        "path": ".cache/downloads/50-kvazaar_36ba4fecb23c3c52d829030be410feb99cf26cb09ddecc0108d24aa538a0f99c.tar.xz",
+        "bytes": 1177392,
+        "sha256": "3d461353cf6f0905805facf209f55a46bcb72801cca75181b1ed541b46b4cc6a"
+      },
+      {
+        "path": ".cache/downloads/50-lcevcdec_74a493e06a33c4de0c2adcc72118cd80f1f80ed756ba9948c92ac5d0e369f1c9.tar.xz",
+        "bytes": 4621388,
+        "sha256": "3bc741c5076ee7c279a553181cac684e58cd245e27bb82d538f17a7a0807cb85"
+      },
+      {
+        "path": ".cache/downloads/50-libaribb24_3dd74ffb861f7ef9133dab074b9845408d84ebc49db9aee5d91829efba6d52ce.tar.xz",
+        "bytes": 109104,
+        "sha256": "a39f0c4cd4b28cbaecaa8a65d93667525875ffedffba7a6f9f30eeebd542ceda"
+      },
+      {
+        "path": ".cache/downloads/50-libaribcaption_8315a724d2e43047c02fb15f99a6decc2824fd4abd55c795ca1063dca443bf8e.tar.xz",
+        "bytes": 513932,
+        "sha256": "a2ff9be017b1cc0d8e25d6effcdcb7d8bf25dd5a546468d63e5f7d67085ac1f4"
+      },
+      {
+        "path": ".cache/downloads/50-libass_eb0a72fee1bb9fe0003a273d115a36b08666ddc47934821affb006da826afdf2.tar.xz",
+        "bytes": 701240,
+        "sha256": "175bc5f509d123d75e9d7338b83ad8aefc890e073018e13e8d9c90153b7970bc"
+      },
+      {
+        "path": ".cache/downloads/50-libbluray_f1d8f0cf739b62e26267eeec08f3f9bfc61b1a524e8b108ddbf61ee7d639ca60.tar.xz",
+        "bytes": 1380324,
+        "sha256": "075d2d8634faa8e2f98d184348f45ba439205ec28e7ea0b4e24f2ca7d8165a11"
+      },
+      {
+        "path": ".cache/downloads/50-libdvdnav_b2d802a9d3c953740f05e04c01bb9764d1517818b7282160652586a93b9bbf5b.tar.xz",
+        "bytes": 249368,
+        "sha256": "e5f377c596bf39fbec42b751009f78eed02bc31af74e6dc877eb3608db96244a"
+      },
+      {
+        "path": ".cache/downloads/50-libjxl_d3647c8fb1cbd9d0180d65e147860283132056b94f1ef29aadfcf41e32e7c3d9.tar.xz",
+        "bytes": 12657808,
+        "sha256": "f39126bb83cd66e738e2e1ad179ac38a42637d076b333428b4d8f69b4beec690"
+      },
+      {
+        "path": ".cache/downloads/50-libmp3lame_f2f7446b57b288ce67fc1343304ab42c69083e24cf9e6a16d47c5f511b43e248.tar.xz",
+        "bytes": 1904668,
+        "sha256": "1b611dc7118f1ab21ba04c0fb7a6cbe527c6e4e359c6841718b65756c17a16e3"
+      },
+      {
+        "path": ".cache/downloads/50-libopus_d5d6bff35ed4cca25b341844c0f89c9f98b625b904750bdd960722ea107e9a60.tar.xz",
+        "bytes": 268190112,
+        "sha256": "31a6ab44eb84a479d041944b2c4e03bacc182eb6998237a108f89613abb522a3"
+      },
+      {
+        "path": ".cache/downloads/50-libplacebo_f8a8cad5ba86c94e40a07e9f5d43a53f07329c10df7918b410f47ebc2969ef0e.tar.xz",
+        "bytes": 17054912,
+        "sha256": "e7ffffd5a910fac97b874ecf2ca745474b52626af219c2313a0aeebded2c3354"
+      },
+      {
+        "path": ".cache/downloads/50-librist_c44a5e59d58d44b672c8df850ae76b4ad372ebab3a4a63a003ac35d45aa9d1a2.tar.xz",
+        "bytes": 6334468,
+        "sha256": "fb9dc5398a5064e5d23bb56ac4a0629bb33f7d32949fefad7f360bebbbafd08c"
+      },
+      {
+        "path": ".cache/downloads/50-libssh_4eaec4486b9a325624c84dc08381575f89816f8c201bc671e892acafaef521bf.tar.xz",
+        "bytes": 2276876,
+        "sha256": "28cb7009b46a765a3333311d908d23d2ca9a06824c80fa2f61668f30ab9b7d21"
+      },
+      {
+        "path": ".cache/downloads/50-libtheora_c5b1505081f2493a61c94a64ef8eef6de9b851447fab834bd5f9b6e35ee1d008.tar.xz",
+        "bytes": 1805520,
+        "sha256": "7baf4f2de030b47fb9f80e15b72cdf09246d1b277fedd5334e3c5ce62c5b22cc"
+      },
+      {
+        "path": ".cache/downloads/50-libva_2bc55ab7571e4ab9d59dc473d3dfaebb2cbc6caca5da95e1e680eaae56e62d03.tar.xz",
+        "bytes": 610712,
+        "sha256": "3f06bd9f7e4241386acc61fc4cb5f3a199d520c743479058898e89dd2eae93ee"
+      },
+      {
+        "path": ".cache/downloads/50-libvpx_e1d9ee3f918e52bb06f3858a94d08f885b37db2fcfb791247d6b24f1e6c4f3fd.tar.xz",
+        "bytes": 10671332,
+        "sha256": "dd2537b3e629b033f25fa9c6a293f875935afa4f1c6a4809801bd743f1662f43"
+      },
+      {
+        "path": ".cache/downloads/50-libwebp_217ee867d83c944da9171546b230ff0c4026fc894b9a55682487dea9e70c92b1.tar.xz",
+        "bytes": 3663288,
+        "sha256": "a96cbb588ab839776705e19f71cbc05c1d5b2dadfb80ceb998314fb4e0c54790"
+      },
+      {
+        "path": ".cache/downloads/50-libzmq_e68f6ea67cc2e84e0b320f3a4b5538dc90d97142264dc310dd8bbcb5f989d9e2.tar.xz",
+        "bytes": 1688328,
+        "sha256": "650bcd37905a95f56bc29de27e57c8948382a1de698577075003e07b96711f77"
+      },
+      {
+        "path": ".cache/downloads/50-onevpl_c67accd07bdf24795034753f097eec4331f1a1174ce643cf5bcf94cb26ddd5e4.tar.xz",
+        "bytes": 16127492,
+        "sha256": "e82b05b0feab7b6dc76db2bd781c84e1a73b23ffc11a1bf2c9f4b04c77b23674"
+      },
+      {
+        "path": ".cache/downloads/50-openal_9c4ba41173fbaca308a4f97075b9938783fad976a0c557787e3d5435c8a52afd.tar.xz",
+        "bytes": 2997388,
+        "sha256": "c431f88b7ea8664af6e60efce1a42248e37ef3866a5b8755df7048079965c9bd"
+      },
+      {
+        "path": ".cache/downloads/50-openapv_83b28fa418843fb59bd5e85c20fcb7e1c4b97d66e1d70000d258d50863ed39e1.tar.xz",
+        "bytes": 319447772,
+        "sha256": "2a45a7d8c398f6a11dc9cdd6d081bcd415bcbb4493841b80f112b7c423b2a4ee"
+      },
+      {
+        "path": ".cache/downloads/50-opencore-amr_5d7ec3b8ffdd0f32309a659256916e3286724f08acf0f625a4b4f1f9c17ebf7c.tar.xz",
+        "bytes": 1065720,
+        "sha256": "73df364d53bbd34f6acb6dbb73839691730142c5393a01a91b40f70de334bfee"
+      },
+      {
+        "path": ".cache/downloads/50-openh264_28d2712432b4516dd771baa4199bc82aa79766600e4395fc9c88780f5dd3b319.tar.xz",
+        "bytes": 119151880,
+        "sha256": "1b4c28ec00d2d0acb3c9b10b233a6bf2131be9e6e1272e1a10f30aefa2722e18"
+      },
+      {
+        "path": ".cache/downloads/50-openjpeg_70f1c086f3e1fbc7af66c8e90d16c1fb0a55353eadc4f2428b4ba02c32e0ffe2.tar.xz",
+        "bytes": 3846876,
+        "sha256": "00a9c490a9008bed9c711821335d5013dc164608b072327b6b8f2886232e4c1a"
+      },
+      {
+        "path": ".cache/downloads/50-openmpt_170dbcf92e1eeb66ecbc1fafbe525a77ceca3b6d5719bbe71cce38ec3f7f598a.tar.xz",
+        "bytes": 50602804,
+        "sha256": "06b8767bb6ff77a9df58b39ad04cf37734c828fa91004047dfe66d550c0a94bd"
+      },
+      {
+        "path": ".cache/downloads/50-rav1e_f5502fba0839b77e72f498941acc6b52cd25845005fff70a9f22bff369d96d24.tar.xz",
+        "bytes": 5546276,
+        "sha256": "40b34946f63493d73b0bf2a8c271c547d1d23dc97649e632518e89f75bc96530"
+      },
+      {
+        "path": ".cache/downloads/50-rubberband_5d3ca7b4a1f4c07ead3f23ba9c7a3736384a9394a34e41bf70a78075e0ed9593.tar.xz",
+        "bytes": 586584,
+        "sha256": "77495a8a3119e26efb21d29ad5c38bd8a985756de0966527f59474d7952b10bd"
+      },
+      {
+        "path": ".cache/downloads/50-sdl_39aa248e02f3e880f3562110b8d35ed9933fd8e2629b360a16a41066de1832b2.tar.xz",
+        "bytes": 13745116,
+        "sha256": "d24fa50a1e0cf5006f0acfd6bbb631d490b902d36e5ec96d8400611ea621bc9f"
+      },
+      {
+        "path": ".cache/downloads/50-shaderc_2a061b889468985d41c31e635f79a418277e3a87892a8235abf3b907ced27e6e.tar.xz",
+        "bytes": 167646524,
+        "sha256": "d570223e268bac96985e69722c07fcea58bd712b171ebc1deadec96f568c62d3"
+      },
+      {
+        "path": ".cache/downloads/50-snappy_d8a43fb0eb02bc90350183462075a5b32ba7aefd0b5fa1552eee898a06fec5ba.tar.xz",
+        "bytes": 2124948,
+        "sha256": "ecc2fbb008f957578970a8f7f8ef6595d4b9b25965b4f409eb3ba8386a42411b"
+      },
+      {
+        "path": ".cache/downloads/50-soxr_d24c000584012b62b406f09325af85575932219b972b87ab3e2b1037bdc97c6a.tar.xz",
+        "bytes": 308508,
+        "sha256": "f72b77ab2f6d4bfdcd1242d3dcc0579ff20ed03948fdfe5fb2b0380e2dd2d22c"
+      },
+      {
+        "path": ".cache/downloads/50-srt_9ab50c21c12c46d2bb1f3be5bc86fab97365761a25ed88d64ad21ff275416d35.tar.xz",
+        "bytes": 3411144,
+        "sha256": "179f14367c0ea3e2f7d53c594409cc0f1b5ba043384f66f938bf64d5b44d0b10"
+      },
+      {
+        "path": ".cache/downloads/50-svtav1_bc68c167d279f46395f6f2517d3f2e6588916353912ac46897c3d53afbd361f5.tar.xz",
+        "bytes": 88161088,
+        "sha256": "c7d7ce115efc65f80b1006c5110b749b6b54e87f925416173ec63ebf53b84e0b"
+      },
+      {
+        "path": ".cache/downloads/50-twolame_b034b56f3c8caa730922980b6e8aca15c6f3b46e3fa98d3229c337aeb7858f71.tar.xz",
+        "bytes": 828424,
+        "sha256": "f49d916cd63bd478beb52baa0fe9fd829527a1bcd3c5fe9ae64f8ec11f1c8001"
+      },
+      {
+        "path": ".cache/downloads/50-uavs3d_f5c1983f0fc2360d5846298e08a8f89f2f345caa3beb83100ca9b48eff5ded6b.tar.xz",
+        "bytes": 1442168,
+        "sha256": "cbe10f685faaa0fa276bd1f3797a8a482b9bb6ff55a7a75b9693c8a7012acea1"
+      },
+      {
+        "path": ".cache/downloads/50-vidstab_64146de3a036c50996d0c9d19ebf22fd9ff0fb0adde303ebc089f356187eaf68.tar.xz",
+        "bytes": 571884,
+        "sha256": "a0dc7688b76485bfc025f7ef28cc378cc5d66009248738517cd4427a7d8a6549"
+      },
+      {
+        "path": ".cache/downloads/50-vvenc_faf7d4eedba9449f57440351627584d9bd96be053613d223bfe89f29e5120bc3.tar.xz",
+        "bytes": 4287068,
+        "sha256": "51916970fd76492245c8455a87854c466dabedf3f17760f95a138a0b645a5d8c"
+      },
+      {
+        "path": ".cache/downloads/50-x264_7aee4cf46b7c0eff1a5ad3d23ae43a29562065ef2866a4a883d7ad2db0fb755d.tar.xz",
+        "bytes": 1916864,
+        "sha256": "b7c2bbb51005d101691a69d24edb99ea7ac9b9e448e74a606ecdc6e0357e3026"
+      },
+      {
+        "path": ".cache/downloads/50-x265_f5451b1fd1b436572157ea0d3fa22ad43fe83aac3640a6fcbaee0b5a8cec15bf.tar.xz",
+        "bytes": 16600216,
+        "sha256": "de4635b44beeae6f523879a2a5d6f25cf92c3a204fa5ea7f8f944422e4d0379f"
+      },
+      {
+        "path": ".cache/downloads/50-xavs2_983aacbab6d33318bf9c4742b41a1ed9d42afc12a0493ba97d07404a99734009.tar.xz",
+        "bytes": 2048468,
+        "sha256": "f69acaed672671ee460aa898e323a5e7190428be86e6bd4471b080e133cd8296"
+      },
+      {
+        "path": ".cache/downloads/50-xvid_03619a39e7e15a372b56fc954435c35668ed47258d7e7d3f2e47ba521e3b884f.tar.xz",
+        "bytes": 598692,
+        "sha256": "21e568c3f51bc5bc56cd564f72a42b730076045f350d6b4fbeef681aafe81bb8"
+      },
+      {
+        "path": ".cache/downloads/50-zimg_1b68d28a887f9b08c573b5e1dd54c4954cc91a8cdfb6d272905a1dc5d8d4d1a1.tar.xz",
+        "bytes": 4044588,
+        "sha256": "7f711ec3ede8dd9ca13975c6bc4d836b93f6d5095130439fa4f2d44dfb591582"
+      },
+      {
+        "path": ".cache/downloads/50-zvbi_7369ec5938a995eb4283992070b303e140fc8a3b5f53d80e2a5df0b84794a75b.tar.xz",
+        "bytes": 1754292,
+        "sha256": "9b7d1c04337aaa79c3b88b3a4f8eeba6ee510020fca1b7784702a93c01c175bf"
+      },
+      {
+        "path": ".cache/downloads/55-spirv-cross_beb52c3f40fbf31adb47a273fe38150d3bef886646a55550484ca13a4475c8b7.tar.xz",
+        "bytes": 3455084,
+        "sha256": "86a74df43da72961f2f96346369d60d2a03d9364b91fed5cd20afba985c99c25"
+      },
+      {
+        "path": ".cache/downloads/60-spirv-headers_635d9044201a4b38732e08b4078f951e570e32f2d510c10c8c372daf9ad5bba6.tar.xz",
+        "bytes": 691648,
+        "sha256": "fd59306947d5eaa5a2923c4e12a93c97f21ac69212d8b9a08d22b04f511be9ac"
+      },
+      {
+        "path": ".cache/downloads/96-lv2_1833e554a5a1760aa41062569225bbb9856f09f3c23d37301074d82a17b0624e.tar.xz",
+        "bytes": 537464,
+        "sha256": "801b068e50832f417e4c7d44c05edeb47b8be3ceda3f677c016a39c91b99cadf"
+      },
+      {
+        "path": ".cache/downloads/96-serd_257c27b8651c05a3b7179f2477bd69ed036feac4eb253312569096821e69a8e7.tar.xz",
+        "bytes": 508676,
+        "sha256": "f1637573530936ca835c2acb3ff48a5060a4240b0f3ecf92eea726e864eb269f"
+      },
+      {
+        "path": ".cache/downloads/96-zix_21e780c9ab8c0f8067c36bb53b76fcabc2dd828153b3f1ab082ed44281f62d13.tar.xz",
+        "bytes": 231200,
+        "sha256": "189631500861f0879a37d8df8edacec36a7e79a2383ff37808cf7388e127c6e3"
+      },
+      {
+        "path": ".cache/downloads/97-sord_6ef433b3c59e64a645002e31f929dfec02cbd979f0d70b5373173e1ca217125d.tar.xz",
+        "bytes": 275684,
+        "sha256": "916791878f0a54483ad13d3eb04d26d36774763db85909bf6c577319cee43a97"
+      },
+      {
+        "path": ".cache/downloads/98-sratom_a7e01a157b247bfecbce4a5c63016fa503ddd5703ffc208af3f81805a7d30535.tar.xz",
+        "bytes": 72464,
+        "sha256": "4a389e6a8662c7a03b938074a832399eef441af8b3cdaa3b2f86db9bb9d0cf2a"
+      },
+      {
+        "path": ".cache/downloads/99-librsvg_38c8426faeb84e5198b43c24cadaacd1bdb27df0a6870b7dee9e0f26db90122a.tar.xz",
+        "bytes": 37258088,
+        "sha256": "da3eb346d649170e634388e64a0b7a00b4cfa4ce191c76a989512cd244ead31e"
+      },
+      {
+        "path": ".cache/downloads/99-lilv_0543a3c15e7971c2371260e51aad5ead6ffbc7a539de39540a906ebf944d829d.tar.xz",
+        "bytes": 325436,
+        "sha256": "c376edca722630a84f70aa9a7635b293a289f47d7edf6c05b5d7761acdf4e49f"
+      }
+    ],
+    "rav1e_registry_source_count": 270,
+    "librsvg_vendored_source_count": 350
+  },
+  "electron_ffmpeg": {
+    "electron_commit": "22de0a3a06cfd3174fc6c59c3810ab5e1c91bf1a",
+    "electron_version": "42.11.3",
+    "chromium_commit": "bfe29217d60b6ee25ce4e4b2c0abcd6361ae6eb6",
+    "chromium_version": "148.0.7778.280",
+    "files": [
+      {
+        "name": "electron-source.tar.gz",
+        "url": "https://codeload.github.com/electron/electron/tar.gz/22de0a3a06cfd3174fc6c59c3810ab5e1c91bf1a",
+        "sha256": "2a9700204e091a726dc6530b200be67dd0709bebcaf68cda0bb4e091f64d4096",
+        "size_bytes": 20191693,
+        "member_count": 3874
+      },
+      {
+        "name": "chromium-opus-source.tar.gz",
+        "url": "https://chromium.googlesource.com/chromium/src/+archive/bfe29217d60b6ee25ce4e4b2c0abcd6361ae6eb6/third_party/opus.tar.gz",
+        "sha256": "6e36c9e9b611d1d5d233c3b31d5828dd9d289efc517218360d5ee65b38dbb34e",
+        "size_bytes": 4258459,
+        "member_count": 790
+      },
+      {
+        "name": "chromium-build-scripts.tar.gz",
+        "url": "https://chromium.googlesource.com/chromium/src/+archive/bfe29217d60b6ee25ce4e4b2c0abcd6361ae6eb6/build.tar.gz",
+        "sha256": "27a95f390a2123d2c8b95cd9afd33db4e8d558d6bf271daa94689b9b28f618ad",
+        "size_bytes": 1830642,
+        "member_count": 1762
+      },
+      {
+        "name": "chromium-media-ffmpeg-scripts.tar.gz",
+        "url": "https://chromium.googlesource.com/chromium/src/+archive/bfe29217d60b6ee25ce4e4b2c0abcd6361ae6eb6/media/ffmpeg.tar.gz",
+        "sha256": "1be5afecc073fbc0939ad3a4f2602b3669e608f10a2ca0466f4f5d75ab2aad75",
+        "size_bytes": 104815,
+        "member_count": 44
+      },
+      {
+        "name": "chromium-ffmpeg-source.tar.gz",
+        "url": "https://chromium.googlesource.com/chromium/third_party/ffmpeg/+archive/f45bab87ce4c5fafc67fd53fcde777578d01bfa0.tar.gz",
+        "sha256": "6b0a60e0141856c7f8f692cafc40d170ce13ed729910e559d68fc4615fc3b38e",
+        "size_bytes": 18247500,
+        "member_count": 10989
+      }
+    ],
+    "ffmpeg_commit": "f45bab87ce4c5fafc67fd53fcde777578d01bfa0",
+    "opus_upstream_revision": "55513e81d8f606bd75d0ff773d2144e5f2a732f5",
+    "opus_chromium_tree": "375f7e8c7a7fedc53a64ce1ab4e2c920dd24a7ce",
+    "normal_electron_configuration": {
+      "target_os": "win",
+      "target_cpu": "x64",
+      "ffmpeg_branding": "Chrome",
+      "proprietary_codecs": true,
+      "CONFIG_GPL": 0,
+      "CONFIG_NONFREE": 0,
+      "CONFIG_VERSION3": 0
+    },
+    "separate_ffmpeg_release_zip_configuration": {
+      "ffmpeg_branding": "Chromium",
+      "proprietary_codecs": false,
+      "applies_to_normal_packaged_electron_dll": false
+    },
+    "verification_scope": "Immutable source/config/patch inspection and archive checksum/member verification. No Electron source compilation or installed DLL hash comparison performed in this audit."
+  }
+}

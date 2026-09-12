@@ -318,6 +318,18 @@
         {
           "from": "ffmpeg/win32-${arch}/lib",
           "to": "."
+        },
+        {
+          "from": "Release/NATIVE-SOURCES.txt",
+          "to": "NATIVE-SOURCES.txt"
+        },
+        {
+          "from": "Release/native-source-manifest.json",
+          "to": "native-source-manifest.json"
+        },
+        {
+          "from": "Release/native-source-publication.json",
+          "to": "native-source-publication.json"
         }
       ],
       "icon": "icon-build/app.ico",

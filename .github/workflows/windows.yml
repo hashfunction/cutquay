@@ -27,6 +27,15 @@ jobs:
       - name: Qualify Store identity through the same installed consumer workflow
         shell: pwsh
         run: ./script/qualifyWindowsMsix.ps1 -IdentityMode store
+      - name: Retain verified unsigned Store package for submission
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: CutQuay-Store-unsigned
+          path: |
+            build-evidence/store-upload/CutQuay_1.0.0.0_x64.msix
+            build-evidence/store-upload/release-ready.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Preserve qualification metadata only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

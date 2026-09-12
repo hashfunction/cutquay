@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "product": "CutQuay",
+  "publication_verified": true,
+  "source_page": "https://cutquay.trieflow.com/source",
+  "release_url": "https://github.com/hashfunction/cutquay/releases/tag/native-sources-2026-09-10",
+  "verified_at_utc": "2026-09-12T03:33:34.995289+00:00",
+  "manifest": {
+    "url": "https://github.com/hashfunction/cutquay/releases/download/native-sources-2026-09-10/source-manifest.json",
+    "bytes": 27790,
+    "sha256": "a607c35d5abee9cfe8b3ac0c3544d0e8fc2aea7afa7c45c8c31b8f5dabcbb5ab"
+  },
+  "assets": [
+    {
+      "name": "cutquay-electron-ffmpeg-source-42.11.3.tar",
+      "url": "https://github.com/hashfunction/cutquay/releases/download/native-sources-2026-09-10/cutquay-electron-ffmpeg-source-42.11.3.tar",
+      "bytes": 45107200,
+      "sha256": "a22ebf3f1e1ce1b5d42392c8afe38bae07683b5c124eb6edcbbee8ca02d40c84"
+    },
+    {
+      "name": "cutquay-ffmpeg-core-and-build-source.tar",
+      "url": "https://github.com/hashfunction/cutquay/releases/download/native-sources-2026-09-10/cutquay-ffmpeg-core-and-build-source.tar",
+      "bytes": 64952320,
+      "sha256": "8279d32043541de05e6a209818b9827f29f4805603f0ef26fd8acf80e0eb520a"
+    },
+    {
+      "name": "cutquay-ffmpeg-dependency-source-part-1.tar",
+      "url": "https://github.com/hashfunction/cutquay/releases/download/native-sources-2026-09-10/cutquay-ffmpeg-dependency-source-part-1.tar",
+      "bytes": 1049088000,
+      "sha256": "fc93e61e9e755ff52ed86a2ac9dec882cf51fb04da6978f20a59c78b5f890e8f"
+    },
+    {
+      "name": "cutquay-ffmpeg-dependency-source-part-2.tar",
+      "url": "https://github.com/hashfunction/cutquay/releases/download/native-sources-2026-09-10/cutquay-ffmpeg-dependency-source-part-2.tar",
+      "bytes": 1049067520,
+      "sha256": "6f86228ab9626866183f503e8bc5261fd2c54148b5bb4b85bd8b8f8b78c83845"
+    }
+  ]
+}

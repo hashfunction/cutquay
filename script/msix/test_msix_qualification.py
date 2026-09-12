@@ -17,6 +17,7 @@ import unittest
 import zipfile
 
 import msix_qualification as msix
+from source_publication_fixture import publication_files
 
 
 def sha(data):
@@ -45,10 +46,13 @@ class QualificationFixture(unittest.TestCase):
 			'locales/en/translation.json':b'{}',
 		}
 		self.media = {f'resources/{name}': ('pinned ' + name).encode() for name in ('ffmpeg.exe','ffprobe.exe','avcodec-62.dll','avdevice-62.dll','avfilter-11.dll','avformat-62.dll','avutil-60.dll','swresample-6.dll','swscale-9.dll')}
-		pin = {'version':'n8.1.2-fixture', 'platform':'win32-x64',
+		pin = {'version':'n8.1.2-fixture', 'platform':'win32-x64', 'archiveSha256':'9'*64, 'ffmpegCommit':'7'*10,
 			'configureStringsExtractedFromBinaries':['--enable-gpl --enable-shared'],
 			'files':[{'path':'bin/'+Path(name).name,'sizeBytes':len(data),'sha256':sha(data)} for name,data in self.media.items()]}
 		self.source_files['Release/ffmpeg-build.json'] = json.dumps(pin).encode()
+		self.native_sources=publication_files()
+		self.native_sources['NATIVE-SOURCES.txt']=(Path(__file__).resolve().parents[2]/'Release/NATIVE-SOURCES.txt').read_bytes()
+		self.source_files.update({'Release/'+name:data for name,data in self.native_sources.items()})
 		for name, data in self.source_files.items():
 			path = self.source / name
 			path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,6 +71,7 @@ class QualificationFixture(unittest.TestCase):
 		self.checksums.write_text(sha(self.electron.read_bytes())+' *'+self.electron.name+'\n')
 		files = {('LICENSE.electron.txt' if name == 'LICENSE' else name):data for name,data in self.runtime.items()}
 		files.update(self.media)
+		files.update({'resources/'+name:data for name,data in self.native_sources.items()})
 		files.update({'CutQuay.exe':b'branded executable', 'resources/FFmpeg-LICENSE.txt':b'ffmpeg notice',
 			'resources/locales/en/translation.json':b'{}'})
 		for name,data in files.items():
@@ -383,6 +388,16 @@ class PackageVerificationTests(QualificationFixture):
 		package, record = self.package()
 		result = msix.verify_msix(package, record['payload'])
 		self.assertEqual(len(record['payload']), result['verifiedPayloadFiles'])
+
+	def test_signature_is_rejected_even_when_expected_payload_claims_it(self):
+		package, record = self.package()
+		for encoded, decoded in [('AppxSignature.p7x', 'AppxSignature.p7x'),
+			('appxsignature.p7x', 'appxsignature.p7x'), ('Appx%53ignature.p7x', 'AppxSignature.p7x')]:
+			with self.subTest(encoded=encoded):
+				changed = self.root/'signed.msix';shutil.copyfile(package, changed)
+				with zipfile.ZipFile(changed, 'a') as archive: archive.writestr(encoded, b'signature')
+				expected = dict(record['payload']);expected[decoded] = {'bytes':9,'sha256':sha(b'signature')}
+				with self.assertRaisesRegex(ValueError, 'contains a signature'): msix.verify_msix(changed, expected)
 
 	def test_opc_encoded_names_match_exact_decoded_payload_bytes(self):
 		package, record = self.package()

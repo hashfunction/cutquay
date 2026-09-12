@@ -1,0 +1,36 @@
+CutQuay: native components, licenses and corresponding source
+
+Source downloads and build information:
+https://cutquay.trieflow.com/source
+https://github.com/hashfunction/cutquay/releases/tag/native-sources-2026-09-10
+
+The accompanying native-source-manifest.json lists the source archive sizes,
+SHA-256 checksums, pinned revisions, build scripts and dependency inventories.
+The accompanying native-source-publication.json binds that exact manifest to
+its published downloads. Source archives are available without charge.
+
+Electron 42.11.3 and its embedded media library
+The original Electron MIT license is retained as LICENSE.electron.txt at the
+application root. LICENSES.chromium.html, also at the application root, is the
+unchanged upstream Chromium/Electron notice collection, including the LGPL
+terms for its FFmpeg components. Electron's root-level ffmpeg.dll belongs to
+this runtime. Its normal Windows x64 build uses the Chrome codec configuration;
+the separate Chromium-only FFmpeg download is not the DLL shipped here.
+Source: cutquay-electron-ffmpeg-source-42.11.3.tar at the release URL above.
+
+Separate FFmpeg command-line media tools
+resources/ffmpeg.exe, resources/ffprobe.exe and their accompanying media DLLs
+use the pinned FFmpeg n8.1.2-51-g7ba069f4f1 GPL version 3 build
+(--enable-gpl --enable-version3). The complete GPLv3 text is retained in
+resources/FFmpeg-LICENSE.txt. Their corresponding source, build scripts,
+patches and dependency sources are provided in all three archives:
+cutquay-ffmpeg-core-and-build-source.tar
+cutquay-ffmpeg-dependency-source-part-1.tar
+cutquay-ffmpeg-dependency-source-part-2.tar
+Download these together from the release URL above and follow the included
+build guide. The manifest identifies the exact binary archive and source pins.
+
+These notices do not replace or narrow any upstream license. The components
+are provided without warranty, subject to their respective license terms.
+The CutQuay application license and dependency notices are also retained in
+resources/app.asar as LICENSE, NOTICE, licenses.txt and Release notices.
