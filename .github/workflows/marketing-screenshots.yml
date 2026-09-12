@@ -28,6 +28,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Capture provenance regression failed.' }
           node --test script/marketing/test_captureUi.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Capture UI regression failed.' }
+          ./script/marketing/test_capture_parameters.ps1
           ./script/marketing/test_capture_helpers.ps1
           ./script/marketing/test_display_modes.ps1
       - name: Fetch exact existing Store artifact and licensed film

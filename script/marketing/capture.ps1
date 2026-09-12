@@ -1,6 +1,6 @@
 # Copyright 2026 Trieflow LLC. MIT. Capture the unchanged, already-qualified Store package.
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$Inputs,[Parameter(Mandatory)][string]$QualifiedSource,[Parameter(Mandatory)][string]$Output)
+param([Parameter(Mandatory)][string]$Inputs,[Parameter(Mandatory)][string]$QualifiedSource,[Parameter(Mandatory)][Alias('Output')][string]$CaptureOutput)
 $ErrorActionPreference='Stop';Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'capture_helpers.ps1')
 . (Join-Path $PSScriptRoot 'display_modes.ps1')
@@ -8,7 +8,7 @@ if(-not $IsWindows -or $env:CI -cne 'true' -or $env:GITHUB_REPOSITORY -cne 'hash
 $inputRoot=(Resolve-Path $Inputs).Path;$qualified=(Resolve-Path $QualifiedSource).Path
 $python=@(Get-Command python -CommandType Application)[0].Source
 Invoke-CheckedNative $python @((Join-Path $PSScriptRoot 'capture_checks.py'),'--inputs',$inputRoot,'--qualified-source',$qualified)
-$outputRoot=[IO.Path]::GetFullPath($Output)
+$outputRoot=[IO.Path]::GetFullPath($CaptureOutput)
 if(Test-Path $outputRoot){throw 'Screenshot output already exists and will not be overwritten.'}
 New-Item -ItemType Directory $outputRoot | Out-Null;Assert-WorkflowDirectory $outputRoot
 foreach($name in @('capture-inputs.json','media-attribution.json')){[IO.File]::Copy((Join-Path $inputRoot $name),(Join-Path $outputRoot $name),$false)}
