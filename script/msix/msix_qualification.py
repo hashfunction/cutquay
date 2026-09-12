@@ -34,6 +34,7 @@ ET.register_namespace('rescap', RESCAP_NS)
 QUALIFICATION_IDENTITY = {
 	'packageName': 'Trieflow.CutQuay.Qualification',
 	'publisher': 'CN=CutQuay-CI-Qualification',
+	'publisherDisplayName': 'Trieflow LLC',
 	'version': '1.0.0.0',
 	'architecture': 'x64',
 	'applicationId': 'CutQuay',
@@ -43,6 +44,16 @@ QUALIFICATION_IDENTITY = {
 	'maxVersionTested': '10.0.26100.0',
 	'capability': 'runFullTrust',
 }
+STORE_IDENTITY = dict(QUALIFICATION_IDENTITY, packageName='1659hashfunction.CutQuay',
+	publisher='CN=B6A2631A-FD32-45CC-AE12-82466975F528', publisherDisplayName='hashfunction')
+
+
+def selected_identity(identity_mode):
+	if identity_mode == 'qualification': return dict(QUALIFICATION_IDENTITY)
+	if identity_mode == 'store': return dict(STORE_IDENTITY)
+	raise ValueError(f'Unsupported identity mode: {identity_mode!r}')
+
+
 REQUIRED_RELEASE_FILES = (
 	'CutQuay.exe','resources/app.asar','LICENSE.electron.txt','LICENSES.chromium.html',
 	'icudtl.dat','resources.pak','chrome_100_percent.pak','chrome_200_percent.pak',
@@ -243,8 +254,9 @@ def validate_runtime(release, source, electron_archive, checksums, input_invento
 		'applicationLocales':locales}
 
 
-def create_manifest():
-	identity = QUALIFICATION_IDENTITY
+def create_manifest(identity_mode='qualification'):
+	identity = selected_identity(identity_mode)
+	description = 'Trim videos and save reusable export recipes' if identity_mode == 'store' else 'CutQuay qualification package'
 	package = ET.Element(f'{{{APPX_NS}}}Package', {'IgnorableNamespaces': 'uap rescap'})
 	ET.SubElement(package, f'{{{APPX_NS}}}Identity', {
 		'Name': identity['packageName'], 'Publisher': identity['publisher'],
@@ -252,8 +264,8 @@ def create_manifest():
 	})
 	properties = ET.SubElement(package, f'{{{APPX_NS}}}Properties')
 	for name, value in (
-		('DisplayName', 'CutQuay'), ('PublisherDisplayName', 'Trieflow LLC'),
-		('Description', 'CutQuay qualification package'), ('Logo', r'Assets\StoreLogo.png'),
+		('DisplayName', 'CutQuay'), ('PublisherDisplayName', identity['publisherDisplayName']),
+		('Description', description), ('Logo', r'Assets\StoreLogo.png'),
 	):
 		ET.SubElement(properties, f'{{{APPX_NS}}}{name}').text = value
 	resources = ET.SubElement(package, f'{{{APPX_NS}}}Resources')
@@ -269,7 +281,7 @@ def create_manifest():
 		'EntryPoint': 'Windows.FullTrustApplication',
 	})
 	ET.SubElement(application, f'{{{UAP_NS}}}VisualElements', {
-		'DisplayName': 'CutQuay', 'Description': 'CutQuay qualification package',
+		'DisplayName': 'CutQuay', 'Description': description,
 		'BackgroundColor': '#142e38', 'Square150x150Logo': r'Assets\Square150x150Logo.png',
 		'Square44x44Logo': r'Assets\Square44x44Logo.png',
 	})
@@ -286,7 +298,9 @@ def _one(parent, tag, label):
 	return items[0]
 
 
-def validate_manifest(data):
+def validate_manifest(data, identity_mode='qualification'):
+	identity = selected_identity(identity_mode)
+	description = 'Trim videos and save reusable export recipes' if identity_mode == 'store' else 'CutQuay qualification package'
 	try:
 		root = ET.fromstring(data)
 	except ET.ParseError as error:
@@ -300,16 +314,15 @@ def validate_manifest(data):
 	if [child.tag for child in root] != expected_children:
 		raise ValueError('Unexpected manifest sections or extensions')
 	identity_node = _one(root, f'{{{APPX_NS}}}Identity', 'identity')
-	identity = QUALIFICATION_IDENTITY
 	if identity_node.attrib != {
 		'Name': identity['packageName'], 'Publisher': identity['publisher'],
 		'Version': identity['version'], 'ProcessorArchitecture': identity['architecture'],
 	}:
-		raise ValueError('Unexpected qualification identity')
+		raise ValueError('Unexpected selected package identity')
 	properties = _one(root, f'{{{APPX_NS}}}Properties', 'properties')
 	expected_properties = {
-		'DisplayName': 'CutQuay', 'PublisherDisplayName': 'Trieflow LLC',
-		'Description': 'CutQuay qualification package', 'Logo': r'Assets\StoreLogo.png',
+		'DisplayName': 'CutQuay', 'PublisherDisplayName': identity['publisherDisplayName'],
+		'Description': description, 'Logo': r'Assets\StoreLogo.png',
 	}
 	if len(properties) != len(expected_properties) \
 		or {child.tag.rsplit('}', 1)[-1]: child.text for child in properties} != expected_properties \
@@ -329,7 +342,7 @@ def validate_manifest(data):
 		raise ValueError('Unexpected manifest executable/application')
 	visual = _one(application, f'{{{UAP_NS}}}VisualElements', 'visual elements')
 	if len(application) != 1 or visual.attrib != {
-		'DisplayName': 'CutQuay', 'Description': 'CutQuay qualification package',
+		'DisplayName': 'CutQuay', 'Description': description,
 		'BackgroundColor': '#142e38', 'Square150x150Logo': r'Assets\Square150x150Logo.png',
 		'Square44x44Logo': r'Assets\Square44x44Logo.png',
 	} or len(visual):
@@ -444,7 +457,8 @@ def _write_new(path, data):
 		os.fsync(output.fileno())
 
 
-def stage_release(release, artwork, stage, source_commit, source_root, electron_archive, checksums):
+def stage_release(release, artwork, stage, source_commit, source_root, electron_archive, checksums, identity_mode='qualification'):
+	identity = selected_identity(identity_mode)
 	release, artwork, stage = Path(release), Path(artwork), Path(stage)
 	if not re.fullmatch(r'[0-9a-f]{40}', source_commit or ''):
 		raise ValueError('Exact 40-character source commit is required')
@@ -473,8 +487,8 @@ def stage_release(release, artwork, stage, source_commit, source_root, electron_
 			relative = f'Assets/{name}'
 			_write_new(stage / relative, data)
 			assets[relative] = {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest(), 'pixels': [size, size]}
-		manifest = create_manifest()
-		validate_manifest(manifest)
+		manifest = create_manifest(identity_mode)
+		validate_manifest(manifest, identity_mode)
 		_write_new(stage / 'AppxManifest.xml', manifest)
 		with _regular_stream(artwork) as stream:
 			if _digest(stream) != artwork_record: raise ValueError('Artwork input changed while staging')
@@ -489,8 +503,10 @@ def stage_release(release, artwork, stage, source_commit, source_root, electron_
 		return {
 			'schemaVersion': 1,
 			'sourceCommit': source_commit,
-			'qualificationIdentityOnly': True,
-			'identity': dict(QUALIFICATION_IDENTITY),
+			'identityMode': identity_mode,
+			'qualificationIdentityOnly': identity_mode == 'qualification',
+			'storeIdentityUsed': identity_mode == 'store',
+			'identity': identity,
 			'releaseInput': input_inventory,
 			'payload': payload,
 			'runtime': runtime,
@@ -515,7 +531,8 @@ def _decode_opc_path(value):
 	return _checked_path(unquote(value, encoding='utf-8', errors='strict'))
 
 
-def verify_msix(path, expected):
+def verify_msix(path, expected, identity_mode='qualification'):
+	selected_identity(identity_mode)
 	if not isinstance(expected, dict) or 'AppxManifest.xml' not in expected:
 		raise ValueError('Invalid expected package payload')
 	allowed_directories = {
@@ -561,19 +578,20 @@ def verify_msix(path, expected):
 		raise ValueError('Package payload is missing expected files')
 	if not {'[Content_Types].xml', 'AppxBlockMap.xml'}.issubset(metadata):
 		raise ValueError('Package metadata is incomplete')
-	validate_manifest(manifest_data)
+	validate_manifest(manifest_data, identity_mode)
 	with _regular_stream(path) as stream:
 		package = _digest(stream)
 	return {'verifiedPayloadFiles': len(actual), 'metadata': sorted(metadata), 'package': package}
 
 
-def verify_unpacked(root, expected):
+def verify_unpacked(root, expected, identity_mode='qualification'):
+	selected_identity(identity_mode)
 	actual = inventory_tree(root)
 	for metadata in PACKAGE_METADATA:
 		actual.pop(metadata, None)
 	if actual != expected:
 		raise ValueError('SDK-unpacked payload differs from staged payload')
-	validate_manifest((Path(root) / 'AppxManifest.xml').read_bytes())
+	validate_manifest((Path(root) / 'AppxManifest.xml').read_bytes(), identity_mode)
 	return {'verifiedPayloadFiles': len(actual)}
 
 
@@ -597,7 +615,8 @@ def _run(command):
 	subprocess.run(command, check=True, shell=False, timeout=900)
 
 
-def build_qualification(release, artwork, source_commit, makeappx, sdk_version, output, runner=_run, source_root=None, electron_archive=None, checksums=None):
+def build_qualification(release, artwork, source_commit, makeappx, sdk_version, output, runner=_run, source_root=None, electron_archive=None, checksums=None, identity_mode='qualification'):
+	selected_identity(identity_mode)
 	output = Path(output).absolute()
 	if os.path.lexists(output):
 		raise ValueError(f'Output already exists and will not be replaced: {output}')
@@ -606,8 +625,8 @@ def build_qualification(release, artwork, source_commit, makeappx, sdk_version, 
 	try:
 		tool = _tool_record(makeappx, sdk_version)
 		stage = temporary / 'stage'
-		record = stage_release(release, artwork, stage, source_commit, source_root, electron_archive, checksums)
-		package = temporary / 'CutQuay.Qualification_1.0.0.0_x64.msix'
+		record = stage_release(release, artwork, stage, source_commit, source_root, electron_archive, checksums, identity_mode)
+		package = temporary / ('CutQuay.Store_1.0.0.0_x64.msix' if identity_mode == 'store' else 'CutQuay.Qualification_1.0.0.0_x64.msix')
 		unpacked = temporary / 'unpacked'
 		commands = [
 			[str(makeappx), 'pack', '/d', str(stage), '/p', str(package), '/v', '/h', 'SHA256'],
@@ -619,8 +638,8 @@ def build_qualification(release, artwork, source_commit, makeappx, sdk_version, 
 			runner(command)
 			if inventory_tree(stage) != record['payload']:
 				raise ValueError('Package stage changed during SDK execution')
-		container = verify_msix(package, record['payload'])
-		unpacked_result = verify_unpacked(unpacked, record['payload'])
+		container = verify_msix(package, record['payload'], identity_mode)
+		unpacked_result = verify_unpacked(unpacked, record['payload'], identity_mode)
 		if _tool_record(makeappx, sdk_version) != tool:
 			raise ValueError('MakeAppx changed during qualification build')
 		record.update({
@@ -661,6 +680,7 @@ def validate_source_checkout(source, expected_commit):
 
 def main():
 	parser = argparse.ArgumentParser(description=__doc__)
+	parser.add_argument('--identity-mode', choices=('qualification', 'store'), default='qualification')
 	parser.add_argument('--release', type=Path, required=True)
 	parser.add_argument('--artwork', type=Path, required=True)
 	parser.add_argument('--electron-archive', type=Path, required=True)
@@ -675,7 +695,7 @@ def main():
 		parser.error('Qualification package builds require disposable Windows CI')
 	try:
 		validate_source_checkout(args.source_root,args.source_commit)
-		print(build_qualification(args.release, args.artwork, args.source_commit, args.makeappx, args.sdk_version, args.output, source_root=args.source_root, electron_archive=args.electron_archive, checksums=args.electron_checksums))
+		print(build_qualification(args.release, args.artwork, args.source_commit, args.makeappx, args.sdk_version, args.output, source_root=args.source_root, electron_archive=args.electron_archive, checksums=args.electron_checksums, identity_mode=args.identity_mode))
 	except (OSError, ValueError, subprocess.SubprocessError) as error:
 		parser.exit(1, str(error) + '\n')
 

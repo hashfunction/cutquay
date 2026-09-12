@@ -94,6 +94,45 @@ class QualificationFixture(unittest.TestCase):
 
 
 class ManifestTests(QualificationFixture):
+	def test_store_manifest_uses_only_the_allowlisted_store_identity(self):
+		data = msix.create_manifest(identity_mode='store')
+		identity = msix.validate_manifest(data, identity_mode='store')
+		self.assertEqual('1659hashfunction.CutQuay', identity['packageName'])
+		self.assertEqual('CN=B6A2631A-FD32-45CC-AE12-82466975F528', identity['publisher'])
+		self.assertEqual('hashfunction', identity['publisherDisplayName'])
+		self.assertEqual('CutQuay', identity['applicationId'])
+		self.assertEqual('1.0.0.0', identity['version'])
+		self.assertEqual('Windows.Desktop', identity['deviceFamily'])
+		self.assertIn(b'<PublisherDisplayName>hashfunction</PublisherDisplayName>', data)
+		self.assertNotIn(b'Qualification', data)
+
+	def test_identity_modes_cannot_be_confused_or_extended(self):
+		for mode, other in [('qualification', 'store'), ('store', 'qualification')]:
+			data = msix.create_manifest(identity_mode=mode)
+			with self.assertRaisesRegex(ValueError, 'identity'):
+				msix.validate_manifest(data, identity_mode=other)
+		for mode in ('', 'Store', 'custom', None):
+			with self.assertRaisesRegex(ValueError, 'identity mode'):
+				msix.create_manifest(identity_mode=mode)
+			with self.assertRaisesRegex(ValueError, 'identity mode'):
+				msix.validate_manifest(msix.create_manifest(), identity_mode=mode)
+
+	def test_store_manifest_rejects_identity_display_and_capability_mutations(self):
+		data = msix.create_manifest(identity_mode='store')
+		for before, after in (
+			(b'1659hashfunction.CutQuay', b'Trieflow.CutQuay.Qualification'),
+			(b'CN=B6A2631A-FD32-45CC-AE12-82466975F528', b'CN=CutQuay-CI-Qualification'),
+			(b'>hashfunction<', b'>Trieflow LLC<'),
+			(b'Version="1.0.0.0"', b'Version="2.0.0.0"'),
+			(b'ProcessorArchitecture="x64"', b'ProcessorArchitecture="arm64"'),
+			(b'Id="CutQuay"', b'Id="Other"'),
+			(b'CutQuay.exe', b'other.exe'),
+			(b'Windows.Desktop', b'Windows.Universal'),
+			(b'runFullTrust', b'internetClient'),
+		):
+			with self.subTest(before=before), self.assertRaises(ValueError):
+				msix.validate_manifest(data.replace(before, after), identity_mode='store')
+
 	def test_manifest_has_only_qualification_identity_and_required_capability(self):
 		manifest = msix.validate_manifest(msix.create_manifest())
 		self.assertEqual(msix.QUALIFICATION_IDENTITY, manifest)
@@ -112,6 +151,28 @@ class ManifestTests(QualificationFixture):
 
 
 class StageTests(QualificationFixture):
+	def test_both_modes_preserve_runtime_and_keep_release_clearance_false(self):
+		records = {}
+		for mode in ('qualification', 'store'):
+			stage = self.root / mode
+			record = msix.stage_release(self.release, self.artwork, stage, self.commit,
+				self.source, self.electron, self.checksums, identity_mode=mode)
+			self.assertEqual(mode, record['identityMode'])
+			self.assertIs(mode == 'qualification', record['qualificationIdentityOnly'])
+			self.assertIs(mode == 'store', record['storeIdentityUsed'])
+			for flag in ('licenseClearanceClaimed', 'publicRelease', 'signed', 'installationQualificationPassed'):
+				self.assertIs(False, record[flag])
+			self.assertEqual(record['identity'], msix.validate_manifest((stage/'AppxManifest.xml').read_bytes(), identity_mode=mode))
+			records[mode] = record
+		self.assertEqual(records['qualification']['releaseInput'], records['store']['releaseInput'])
+		self.assertEqual(records['qualification']['runtime'], records['store']['runtime'])
+		for mode in ('custom', 'Store'):
+			output = self.root / ('invalid-' + mode)
+			with self.assertRaisesRegex(ValueError, 'identity mode'):
+				msix.stage_release(self.release, self.artwork, output, self.commit,
+					self.source, self.electron, self.checksums, identity_mode=mode)
+			self.assertFalse(output.exists())
+
 	def test_stage_copies_complete_release_and_records_assets_and_hashes(self):
 		record = self.stage()
 		stage = self.root / 'stage'
@@ -469,6 +530,36 @@ class BuildFlowTests(QualificationFixture):
 		self.assertEqual(sha(self.makeappx.read_bytes()), record['makeAppx']['sha256'])
 		package = self.output / 'CutQuay.Qualification_1.0.0.0_x64.msix'
 		self.assertEqual(sha(package.read_bytes()), record['containerVerification']['package']['sha256'])
+
+	def test_store_build_and_independent_verifiers_require_explicit_mode(self):
+		msix.build_qualification(self.release, self.artwork, self.commit, self.makeappx,
+			'10.0.26100.0', self.output, self.fake_sdk, self.source, self.electron, self.checksums,
+			identity_mode='store')
+		record = json.loads((self.output/'package-record.json').read_text())
+		package = self.output/'CutQuay.Store_1.0.0.0_x64.msix'
+		self.assertEqual('store', record['identityMode'])
+		self.assertFalse(record['qualificationIdentityOnly'])
+		self.assertTrue(record['storeIdentityUsed'])
+		self.assertEqual('1659hashfunction.CutQuay', record['identity']['packageName'])
+		for flag in ('licenseClearanceClaimed', 'publicRelease', 'signed', 'installationQualificationPassed'):
+			self.assertIs(False, record[flag])
+		self.assertEqual(sha(package.read_bytes()), record['containerVerification']['package']['sha256'])
+		self.assertEqual(len(record['payload']), msix.verify_msix(package, record['payload'], identity_mode='store')['verifiedPayloadFiles'])
+		unpacked = self.root/'store-unpacked'
+		with zipfile.ZipFile(package) as archive: archive.extractall(unpacked)
+		msix.verify_unpacked(unpacked, record['payload'], identity_mode='store')
+		with self.assertRaisesRegex(ValueError, 'identity'): msix.verify_msix(package, record['payload'])
+		with self.assertRaisesRegex(ValueError, 'identity'): msix.verify_unpacked(unpacked, record['payload'])
+		# Even coherent manifest/hash substitution cannot switch the selected mode.
+		manifest = msix.create_manifest()
+		(unpacked/'AppxManifest.xml').write_bytes(manifest)
+		payload = dict(record['payload'], **{'AppxManifest.xml': {'bytes':len(manifest),'sha256':sha(manifest)}})
+		changed = self.root/'mode-confused.msix'
+		with zipfile.ZipFile(package) as original, zipfile.ZipFile(changed, 'w') as target:
+			for info in original.infolist():
+				target.writestr(info, manifest if info.filename == 'AppxManifest.xml' else original.read(info))
+		with self.assertRaisesRegex(ValueError, 'identity'): msix.verify_msix(changed, payload, identity_mode='store')
+		with self.assertRaisesRegex(ValueError, 'identity'): msix.verify_unpacked(unpacked, payload, identity_mode='store')
 
 	def test_build_rechecks_sdk_tool_and_refuses_existing_output(self):
 		def changing_sdk(command):

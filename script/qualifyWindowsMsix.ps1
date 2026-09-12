@@ -1,4 +1,6 @@
-# Copyright 2026 Trieflow LLC. MIT. Temporary identity, metadata-only evidence.
+# Copyright 2026 Trieflow LLC. MIT. Disposable installation, metadata-only evidence.
+[CmdletBinding()]
+param([ValidateSet('qualification','store', IgnoreCase=$false)][string]$IdentityMode='qualification')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if (-not $IsWindows -or $env:CI -ne 'true' -or $PSVersionTable.PSVersion.Major -lt 7) { throw 'Requires Windows CI and PowerShell 7.' }
@@ -11,6 +13,7 @@ $powerShell = (Get-Process -Id $PID).Path
 Invoke-Checked python @('script/msix/test_msix_qualification.py')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_qualify_msix_install.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_msix_evidence.ps1')
+Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_store_identity.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_registration_ownership.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_installed_media.ps1')
 Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_media_failed_start.ps1')
@@ -31,6 +34,9 @@ $electronVersion = (Get-Content package.json -Raw | ConvertFrom-Json).devDepende
 $sdkVersion = '10.0.26100.0'
 $sdkDirectory = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin\$sdkVersion\x64"
 $packageOutput = Join-Path $env:RUNNER_TEMP ('cutquay-msix-package-' + [guid]::NewGuid().ToString('N'))
-Invoke-Checked python @('script/msix/msix_qualification.py','--release','dist/win-unpacked','--artwork','icon-build/app-512.png','--source-root','.','--source-commit',$sourceCommit,'--makeappx',(Join-Path $sdkDirectory 'makeappx.exe'),'--sdk-version',$sdkVersion,'--output',$packageOutput,'--electron-archive',(Join-Path $electronInput "electron-v$electronVersion-win32-x64.zip"),'--electron-checksums',(Join-Path $electronInput 'SHASUMS256.txt'))
-[IO.File]::Copy((Join-Path $packageOutput 'package-record.json'), (Join-Path (Get-Location) 'build-evidence/msix-package-record.json'), $false)
-Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/qualify-msix-install.ps1','-Package',(Join-Path $packageOutput 'CutQuay.Qualification_1.0.0.0_x64.msix'),'-PackageRecord',(Join-Path $packageOutput 'package-record.json'),'-SignTool',(Join-Path $sdkDirectory 'signtool.exe'),'-Output','build-evidence/msix-install')
+Invoke-Checked python @('script/msix/msix_qualification.py','--release','dist/win-unpacked','--artwork','icon-build/app-512.png','--source-root','.','--source-commit',$sourceCommit,'--makeappx',(Join-Path $sdkDirectory 'makeappx.exe'),'--sdk-version',$sdkVersion,'--output',$packageOutput,'--electron-archive',(Join-Path $electronInput "electron-v$electronVersion-win32-x64.zip"),'--electron-checksums',(Join-Path $electronInput 'SHASUMS256.txt'),'--identity-mode',$IdentityMode)
+$packageName=if ($IdentityMode -ceq 'store') {'CutQuay.Store_1.0.0.0_x64.msix'} else {'CutQuay.Qualification_1.0.0.0_x64.msix'}
+$recordOutput=if ($IdentityMode -ceq 'store') {'build-evidence/msix-store-package-record.json'} else {'build-evidence/msix-package-record.json'}
+$installOutput=if ($IdentityMode -ceq 'store') {'build-evidence/msix-store-install'} else {'build-evidence/msix-install'}
+[IO.File]::Copy((Join-Path $packageOutput 'package-record.json'), (Join-Path (Get-Location) $recordOutput), $false)
+Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/qualify-msix-install.ps1','-Package',(Join-Path $packageOutput $packageName),'-PackageRecord',(Join-Path $packageOutput 'package-record.json'),'-SignTool',(Join-Path $sdkDirectory 'signtool.exe'),'-Output',$installOutput,'-IdentityMode',$IdentityMode)

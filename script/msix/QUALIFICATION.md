@@ -1,6 +1,40 @@
-# CutQuay disposable MSIX qualification handoff
+# CutQuay MSIX identity and installation qualification
 
-Implements `docs/plans/cutquay-msix-qualification.md` in the parent project, extending approved Task 4. Product baseline: `c7998d88706cd6cf1bcbbdd4d79f67ca528b46d5`. This changes packaging/qualification only; it does not open the existing production Store license gate, change dependencies, or reserve a Store identity.
+Implements `docs/plans/cutquay-msix-qualification.md` in the parent project, extending approved Task 4. Product baseline: `c7998d88706cd6cf1bcbbdd4d79f67ca528b46d5`. This changes packaging/qualification only; it does not open the existing production Store license gate or change dependencies.
+
+## Explicit Store identity mode
+
+`script/qualifyWindowsMsix.ps1` defaults to `-IdentityMode qualification`. The
+additional `-IdentityMode store` selects only the reserved identity
+`1659hashfunction.CutQuay`, publisher
+`CN=B6A2631A-FD32-45CC-AE12-82466975F528`, and PublisherDisplayName `hashfunction`.
+Both modes use version `1.0.0.0`, x64, application ID `CutQuay`, executable
+`CutQuay.exe`, and Windows.Desktop. Arbitrary identities and mode spellings are
+rejected. The Python builder exposes the same selection as `--identity-mode`;
+manifest, container and unpacked verification all require the explicit mode.
+
+The installer independently checks its fixed identity tuple against both the
+typed package record and the actual unsigned manifest before signing. The record
+source must match the current Windows run. A preexisting registration with the
+selected package name, at any version or architecture, prevents installation.
+The temporary certificate uses the selected publisher but confers no production
+signing or submission approval. Exact package/process ownership, installed media,
+the real import/trim/recipe/export/reopen workflow, normal close and uninstall
+remain mandatory in both modes.
+
+Windows runs Store identity qualification only after the disposable identity
+step succeeds. Store metadata is separate: `msix-store-package-record.json` and
+`msix-store-install/` under `build-evidence`. The unsigned Store-mode output is
+named `CutQuay.Store_1.0.0.0_x64.msix` and remains in the runner's temporary tree.
+The upload allowlist contains metadata and screenshots only; neither unsigned
+nor signed packages, binaries, media files, or certificates are uploaded.
+
+Package records state `identityMode`, `qualificationIdentityOnly`, and
+`storeIdentityUsed`. Installer evidence states the selected `identity_mode` and
+sets `store_identity_used` only after the exact Store registration is owned.
+`publicRelease`/`public_release` and license-clearance flags remain false even
+when Store identity qualification passes. Dependency corresponding-source
+obligations, WACK, upgrade and Store submission remain separate gates.
 
 ## Exact scope and inputs
 

@@ -8,12 +8,93 @@ param(
     [Parameter()][string]$PackageRecord,
     [Parameter()][string]$SignTool,
     [Parameter()][string]$Output,
+    [Parameter()][ValidateSet('qualification','store', IgnoreCase=$false)][string]$IdentityMode='qualification',
     [Parameter()][switch]$LibraryOnly
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'workflow-functions.ps1')
+
+function Get-CutQuayExpectedIdentity([string]$IdentityMode='qualification') {
+    if ($IdentityMode -cnotin @('qualification','store')) { throw 'Unsupported identity mode.' }
+    # Deliberately independent of the package builder and its input record.
+    $identity=[ordered]@{
+        packageName='Trieflow.CutQuay.Qualification';publisher='CN=CutQuay-CI-Qualification';publisherDisplayName='Trieflow LLC'
+        version='1.0.0.0';architecture='x64';applicationId='CutQuay';executable='CutQuay.exe'
+        deviceFamily='Windows.Desktop';minVersion='10.0.19041.0';maxVersionTested='10.0.26100.0';capability='runFullTrust'
+    }
+    if ($IdentityMode -ceq 'store') {
+        $identity.packageName='1659hashfunction.CutQuay'
+        $identity.publisher='CN=B6A2631A-FD32-45CC-AE12-82466975F528'
+        $identity.publisherDisplayName='hashfunction'
+    }
+    return $identity
+}
+
+function Assert-CutQuayPackageIdentity([object]$Record, [string]$PackagePath, [string]$IdentityMode='qualification') {
+    $expected=Get-CutQuayExpectedIdentity $IdentityMode
+    if ($Record.schemaVersion -ne 1 -or $Record.identityMode -isnot [string] -or $Record.identityMode -cne $IdentityMode) { throw 'Package record identity mode/schema mismatch.' }
+    if ($Record.sourceCommit -isnot [string] -or $Record.sourceCommit -cnotmatch '^[0-9a-f]{40}$') { throw 'Package record lacks an exact source commit.' }
+    $flags=[ordered]@{
+        qualificationIdentityOnly=($IdentityMode -ceq 'qualification');storeIdentityUsed=($IdentityMode -ceq 'store')
+        signed=$false;publicRelease=$false;licenseClearanceClaimed=$false;installationQualificationPassed=$false
+    }
+    foreach ($field in $flags.Keys) {
+        if ($Record.$field -isnot [bool] -or $Record.$field -ne $flags[$field]) { throw "Package record flag mismatch: $field" }
+    }
+    if (@($Record.identity.PSObject.Properties).Count -ne $expected.Count) { throw 'Package record identity fields mismatch.' }
+    foreach ($field in $expected.Keys) {
+        if ($Record.identity.$field -isnot [string] -or $Record.identity.$field -cne $expected[$field]) { throw "Package record identity mismatch: $field" }
+    }
+    # Read the actual unsigned container before signing; record metadata alone
+    # cannot authorize a package using a different publisher or package name.
+    $archive=[IO.Compression.ZipFile]::OpenRead($PackagePath)
+    try {
+        $entries=@($archive.Entries | Where-Object {$_.FullName -ieq 'AppxManifest.xml'})
+        if ($entries.Count -ne 1 -or $entries[0].FullName -cne 'AppxManifest.xml' -or $entries[0].Length -gt 1048576) { throw 'Expected one bounded exact package manifest.' }
+        $settings=[Xml.XmlReaderSettings]::new()
+        $settings.DtdProcessing=[Xml.DtdProcessing]::Prohibit
+        $settings.XmlResolver=$null
+        $settings.MaxCharactersInDocument=1048576
+        $stream=$entries[0].Open()
+        $reader=[Xml.XmlReader]::Create($stream,$settings)
+        try {
+            $manifest=[Xml.XmlDocument]::new()
+            $manifest.XmlResolver=$null
+            $manifest.Load($reader)
+        } finally {$reader.Dispose();$stream.Dispose()}
+    } finally {$archive.Dispose()}
+    $namespaces=[Xml.XmlNamespaceManager]::new($manifest.NameTable)
+    $namespaces.AddNamespace('a','http://schemas.microsoft.com/appx/manifest/foundation/windows10')
+    $nodes=$manifest.SelectNodes('/a:Package/a:Identity',$namespaces)
+    if ($nodes.Count -ne 1 -or $nodes[0].Attributes.Count -ne 4) { throw 'Unsigned manifest identity shape mismatch.' }
+    foreach ($pair in @(@('Name','packageName'),@('Publisher','publisher'),@('Version','version'),@('ProcessorArchitecture','architecture'))) {
+        if ($nodes[0].GetAttribute($pair[0]) -cne $expected[$pair[1]]) { throw "Unsigned manifest identity mismatch: $($pair[0])" }
+    }
+    $publishers=$manifest.SelectNodes('/a:Package/a:Properties/a:PublisherDisplayName',$namespaces)
+    if ($publishers.Count -ne 1 -or $publishers[0].InnerText -cne $expected.publisherDisplayName) { throw 'Unsigned manifest PublisherDisplayName mismatch.' }
+    $namespaces.AddNamespace('r','http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities')
+    foreach ($shape in @(
+        @{path='/a:Package/a:Applications/a:Application';attributes=@{Id=$expected.applicationId;Executable=$expected.executable;EntryPoint='Windows.FullTrustApplication'}},
+        @{path='/a:Package/a:Dependencies/a:TargetDeviceFamily';attributes=@{Name=$expected.deviceFamily;MinVersion=$expected.minVersion;MaxVersionTested=$expected.maxVersionTested}},
+        @{path='/a:Package/a:Capabilities/r:Capability';attributes=@{Name=$expected.capability}}
+    )) {
+        $nodes=$manifest.SelectNodes($shape.path,$namespaces)
+        if ($nodes.Count -ne 1 -or $nodes[0].Attributes.Count -ne $shape.attributes.Count) { throw "Unsigned manifest identity shape mismatch: $($shape.path)" }
+        foreach ($name in $shape.attributes.Keys) {
+            if ($nodes[0].GetAttribute($name) -cne $shape.attributes[$name]) { throw "Unsigned manifest identity mismatch: $($shape.path)/$name" }
+        }
+    }
+    if ($manifest.SelectNodes('/a:Package/a:Capabilities/*',$namespaces).Count -ne 1) { throw 'Unsigned manifest has unexpected capabilities.' }
+}
+
+function Assert-CutQuayPackageAbsent([Collections.IDictionary]$State, [string]$IdentityMode='qualification') {
+    $expected=Get-CutQuayExpectedIdentity $IdentityMode
+    $existing=@(Get-AppxPackage -Name $expected.packageName -ErrorAction Stop)
+    $State.preflightPackageFullNames=@($existing | ForEach-Object {[string]$_.PackageFullName})
+    if ($existing.Count -gt 0) { throw 'A matching CutQuay package is already installed; refusing to replace or remove it.' }
+}
 
 function Invoke-CutQuayQualificationCore([Collections.IDictionary]$Operations) {
     $required = @(
@@ -468,7 +549,7 @@ function Test-InstalledMedia([Collections.IDictionary]$State) {
     return $results.ToArray()
 }
 
-function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$RecordPath, [string]$SignToolPath, [string]$OutputPath) {
+function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$RecordPath, [string]$SignToolPath, [string]$OutputPath, [string]$IdentityMode='qualification') {
     $state = [ordered]@{
         package = $null; record = $null; output = $null; temporary = $null; signedCopy = $null
         publicCertificate = $null; certificate = $null; trustedCertificate = $null; trustAttempted = $false
@@ -483,11 +564,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         diagnosticPackageFullName = $null; diagnosticStderr = $null
         diagnosticCleanClose = $false; cleanClose = $false; uninstallVerified = $false
     }
-    $expectedIdentity = [ordered]@{
-        packageName='Trieflow.CutQuay.Qualification'; publisher='CN=CutQuay-CI-Qualification'; version='1.0.0.0'
-        architecture='x64'; applicationId='CutQuay'; executable='CutQuay.exe'
-        deviceFamily='Windows.Desktop'; minVersion='10.0.19041.0'; maxVersionTested='10.0.26100.0'; capability='runFullTrust'
-    }
+    $expectedIdentity = Get-CutQuayExpectedIdentity $IdentityMode
 
     $operations = [ordered]@{}
     $operations.Preflight = {
@@ -504,12 +581,8 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         New-Item -ItemType Directory -Path $outputCandidate -ErrorAction Stop | Out-Null
         $state.output = $outputCandidate
         $state.record = Get-Content -LiteralPath $recordFile -Raw -Encoding utf8 | ConvertFrom-Json
-        if ($state.record.schemaVersion -ne 1 -or -not $state.record.qualificationIdentityOnly -or $state.record.signed -or $state.record.publicRelease -or $state.record.licenseClearanceClaimed -or $state.record.installationQualificationPassed) {
-            throw 'Package record is not an unsigned qualification-only record.'
-        }
-        foreach ($field in $expectedIdentity.Keys) {
-            if ([string]$state.record.identity.$field -cne [string]$expectedIdentity[$field]) { throw "Qualification identity mismatch: $field" }
-        }
+        if ($state.record.sourceCommit -cne $env:GITHUB_SHA) { throw 'Package source differs from this qualification run.' }
+        Assert-CutQuayPackageIdentity $state.record $state.package $IdentityMode
         $state.unsignedPackageSha256 = (Get-FileHash -LiteralPath $state.package -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($state.unsignedPackageSha256 -ne ([string]$state.record.containerVerification.package.sha256).ToLowerInvariant()) { throw 'Unsigned package hash differs from verified package record.' }
         $sdkVersion = [regex]::Escape([string]$state.record.makeAppx.sdkVersion)
@@ -521,9 +594,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
             sha256 = (Get-FileHash -LiteralPath $state.signTool -Algorithm SHA256).Hash.ToLowerInvariant()
             sdk_version = [string]$state.record.makeAppx.sdkVersion
         }
-        $existing = @(Get-AppxPackage -Name $expectedIdentity.packageName -ErrorAction Stop)
-        $state.preflightPackageFullNames = @($existing | ForEach-Object { [string]$_.PackageFullName })
-        if ($existing.Count -gt 0) { throw 'A matching CutQuay qualification package is already installed; refusing to replace or remove it.' }
+        Assert-CutQuayPackageAbsent $state $IdentityMode
     }.GetNewClosure()
 
     $operations.PrepareSignedCopy = {
@@ -797,7 +868,8 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         schema_version = 1
         generated_at_utc = [DateTime]::UtcNow.ToString('o')
         source_commit = if ($state.record) { [string]$state.record.sourceCommit } else { $null }
-        qualification_identity_only = $true
+        identity_mode = $IdentityMode
+        qualification_identity_only = ($IdentityMode -ceq 'qualification')
         identity = $expectedIdentity
         aumid = $state.aumid
         package_full_name = if ($state.installed) { [string]$state.installed.PackageFullName } else { $null }
@@ -829,7 +901,8 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         consumer_export_workflow = $state.workflowEvidence
         upgrade_tested = $false
         wack_tested = $false
-        store_identity_used = $false
+        store_identity_used = ($IdentityMode -ceq 'store' -and $state.installedByUs)
+        license_clearance_claimed = $false
         public_release = $false
         primary_error = $result.primary_error
         cleanup_errors = @($result.cleanup_errors)
@@ -848,7 +921,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
 
 if (-not $LibraryOnly) {
     try {
-        Invoke-CutQuayInstallQualification -PackagePath $Package -RecordPath $PackageRecord -SignToolPath $SignTool -OutputPath $Output
+        Invoke-CutQuayInstallQualification -PackagePath $Package -RecordPath $PackageRecord -SignToolPath $SignTool -OutputPath $Output -IdentityMode $IdentityMode
     } catch {
         Write-Error $_
         exit 1

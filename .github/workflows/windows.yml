@@ -24,6 +24,9 @@ jobs:
       - name: Qualify disposable MSIX installation and broker activation
         shell: pwsh
         run: ./script/qualifyWindowsMsix.ps1
+      - name: Qualify Store identity through the same installed consumer workflow
+        shell: pwsh
+        run: ./script/qualifyWindowsMsix.ps1 -IdentityMode store
       - name: Preserve qualification metadata only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -40,5 +43,12 @@ jobs:
             build-evidence/msix-install/*-media/*.json
             build-evidence/msix-install/workflow-*/*.json
             build-evidence/msix-install/workflow-*/*.png
+            build-evidence/msix-store-install/*.json
+            build-evidence/msix-store-install/*.txt
+            build-evidence/msix-store-install/*.log
+            build-evidence/msix-store-install/*.png
+            build-evidence/msix-store-install/*-media/*.json
+            build-evidence/msix-store-install/workflow-*/*.json
+            build-evidence/msix-store-install/workflow-*/*.png
           retention-days: 14
           if-no-files-found: error
