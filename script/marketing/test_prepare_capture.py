@@ -11,8 +11,8 @@ import capture_checks as checks
 
 
 class ArtifactTests(unittest.TestCase):
-    def test_rename_blocks_before_any_download_or_output_creation(self):
-        with tempfile.TemporaryDirectory() as directory,patch.object(prepare,'gh_json',side_effect=AssertionError('network called')),patch.object(prepare.subprocess,'check_output',side_effect=AssertionError('checkout read')):
+    def test_historical_binding_blocks_before_any_download_or_output_creation(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(checks,'CAPTURE_PRODUCT','CutQuay'),patch.object(prepare,'gh_json',side_effect=AssertionError('network called')),patch.object(prepare.subprocess,'check_output',side_effect=AssertionError('checkout read')):
             output=Path(directory)/'output'
             with self.assertRaisesRegex(ValueError,'await a newly qualified exact package'):
                 prepare.main(output,Path(directory)/'qualified')

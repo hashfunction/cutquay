@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: bd28e72559ee8c06cc320e8c02b82ddb79ef353d
+          ref: 1f2d10d8237e684d5c04113c6c9fe3f199f2f5e6
           path: qualified-source
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

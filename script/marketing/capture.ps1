@@ -12,21 +12,21 @@ $outputRoot=[IO.Path]::GetFullPath($CaptureOutput)
 if(Test-Path $outputRoot){throw 'Screenshot output already exists and will not be overwritten.'}
 New-Item -ItemType Directory $outputRoot | Out-Null;Assert-WorkflowDirectory $outputRoot
 foreach($name in @('capture-inputs.json','media-attribution.json')){[IO.File]::Copy((Join-Path $inputRoot $name),(Join-Path $outputRoot $name),$false)}
-$state=[ordered]@{package=(Join-Path $inputRoot 'store/CutQuay_1.0.0.0_x64.msix');record=$null;output=$outputRoot;temporary=$null;config=$null;
+$state=[ordered]@{package=(Join-Path $inputRoot 'store/Cliptern_1.0.1.0_x64.msix');record=$null;output=$outputRoot;temporary=$null;config=$null;
     work=$null;workOwned=$false;certificate=$null;trustAttempted=$false;installed=$null;installedByUs=$false;ownedPackageFullName=$null;
     installAttempted=$false;activationStarted=$null;process=$null;aumid=$null;workflowDriver=$null;mediaProcess=$null;
     ownedProcesses=[Collections.Generic.List[Diagnostics.Process]]::new();preflightPackageFullNames=@();residualPackageFullNames=@();
     cleanupErrors=[Collections.Generic.List[string]]::new();normalClose=$false;uninstallVerified=$false;export=$null;reopen=$null;
     displayOriginalMode=$null;displayDevice=$null;displayRestoreRequired=$false;displayEvidence=$null}
 $primary=$null;$unsignedUnchanged=$false
-$expectedHash='bfaed1c545107b948e9e240b5041f197548bf8b83179c12c70f27b1d262b40b3'
-$fullName='1659hashfunction.CutQuay_1.0.0.0_x64__r3hxytd7jt6c4'
+$expectedHash='db4cfd8eb24999260ce23557026c398701a536c2110db6f69950cc53dab34dfa'
+$fullName='1659hashfunction.CutQuay_1.0.1.0_x64__r3hxytd7jt6c4'
 try{
     Start-MarketingDisplay $state
     $state.record=Get-Content (Join-Path $inputRoot 'metadata/msix-store-package-record.json') -Raw|ConvertFrom-Json
-    if($state.record.sourceCommit -cne 'bd28e72559ee8c06cc320e8c02b82ddb79ef353d'){throw 'Capture package source differs from the fixed qualification.'}
+    if($state.record.sourceCommit -cne '1f2d10d8237e684d5c04113c6c9fe3f199f2f5e6'){throw 'Capture package source differs from the fixed qualification.'}
     Assert-CutQuayPackageIdentity $state.record $state.package 'store'
-    if((Get-WorkflowFileRecord $state.package).sha256 -cne $expectedHash -or (Get-Item $state.package).Length -ne 260378673){throw 'Exact original Store package differs.'}
+    if((Get-WorkflowFileRecord $state.package).sha256 -cne $expectedHash -or (Get-Item $state.package).Length -ne 260378239){throw 'Exact original Store package differs.'}
     Assert-CutQuayPackageAbsent $state 'store'
     $state.temporary=Join-Path $env:RUNNER_TEMP ('cutquay-marketing-'+[guid]::NewGuid().ToString('N'));New-Item -ItemType Directory $state.temporary | Out-Null
     $state.config=Join-Path $state.temporary 'settings';New-Item -ItemType Directory $state.config | Out-Null
@@ -84,7 +84,7 @@ finally{
     Write-NewUtf8Json (Join-Path $outputRoot 'capture-result.json') ([ordered]@{schema_version=1;purpose='marketing screenshots only';captured=$captured;
         consumer_acceptance=$false;installation_qualification_claimed=$false;submission_changed=$false;product_binary_changed=$false;
         capture_source_commit=$env:GITHUB_SHA;capture_workflow_run_id=$env:GITHUB_RUN_ID;capture_workflow_run_attempt=$env:GITHUB_RUN_ATTEMPT;
-        qualified_source_commit='bd28e72559ee8c06cc320e8c02b82ddb79ef353d';qualified_run_id='34671595408';package_full_name=$state.ownedPackageFullName;
+        qualified_source_commit='1f2d10d8237e684d5c04113c6c9fe3f199f2f5e6';qualified_run_id='34681628290';package_full_name=$state.ownedPackageFullName;
         original_unsigned_sha256=$expectedHash;original_unsigned_unchanged=$unsignedUnchanged;certificate_private_key_exported=$false;
         normal_close_verified=$state.normalClose;uninstall_verified=$state.uninstallVerified;residual_package_full_names=$state.residualPackageFullNames;display_mode=$state.displayEvidence;
         export=$state.export;reopen=$state.reopen;primary_error=$primary;cleanup_errors=@($state.cleanupErrors);captured_at_utc=[DateTime]::UtcNow.ToString('o')})

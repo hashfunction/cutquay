@@ -74,8 +74,8 @@ def main(output,qualified):
     checks.msix._reject_link(output.parent);output.mkdir()
     run=gh_json(f'repos/hashfunction/cutquay/actions/runs/{checks.RUN}')
     store=output/'store';metadata=output/'metadata'
-    package_artifact=artifact(10291595359,'CutQuay-Store-unsigned',store,280000000,[checks.PACKAGE_NAME,'release-ready.json'])
-    metadata_artifact=artifact(10291385779,'CutQuay-Windows-qualification',metadata,16000000)
+    package_artifact=artifact(10293219335,'Cliptern-Store-unsigned',store,280000000,[checks.PACKAGE_NAME,'release-ready.json'])
+    metadata_artifact=artifact(10293314352,'Cliptern-Windows-qualification',metadata,16000000)
     checks.verify_inputs(store/checks.PACKAGE_NAME,store/'release-ready.json',metadata,qualified,run)
     write_json(output/'qualified-run.json',run)
     media=output/'Spring - Blender Foundation.webm';film(media)

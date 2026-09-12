@@ -1,25 +1,7 @@
-# Cliptern product screenshot handoff
+# Cliptern real Windows product screenshots
 
-Capture is deliberately blocked until a fresh Cliptern 1.0.1.0 package passes the
-complete Windows qualification and its exact source/run/package/artifact bindings
-are independently reviewed. The fixed values below describe historical CutQuay
-evidence and have not been relabeled. `assert_current_capture_binding` refuses
-before package downloads or output creation; the installer also independently
-requires the new executable/version. Update all exact bindings together after
-new qualification, then capture real Cliptern UI. No old pixels are edited.
+The capture helper is bound to the reviewed Cliptern1.0.1.0 package from successful Windows run34681628290, public source1f2d10d8237e684d5c04113c6c9fe3f199f2f5e6. Both installed identities passed actual trimming, recipe save/export/reopen, normal close and uninstall. The unchanged unsigned Store package is260378239bytes with SHA256db4cfd8eb24999260ce23557026c398701a536c2110db6f69950cc53dab34dfa.
 
-## Historical CutQuay capture inputs
+Dispatch marketing-screenshots.yml to capture the exact installed package on a real1920x1080Windows desktop. The helper checks retained qualification evidence, package payload and original film bytes before recording real UI. It captures selected footage, recipe settings, export and reopened output; it closes and uninstalls normally. It does not rebuild or alter the product binary, change certification, or claim new installation qualification.
 
-Dispatch `.github/workflows/marketing-screenshots.yml` after independent review. This workflow downloads the existing qualified Store artifact from run `34671595408`; it does not rebuild the app, change qualification, submit anything, or interact with certification. The unsigned package must remain exactly 260,378,673 bytes with SHA-256 `bfaed1c545107b948e9e240b5041f197548bf8b83179c12c70f27b1d262b40b3`.
-
-The capture runs on an isolated Windows runner, temporarily signs a copy, refuses an existing same-name registration, verifies exact installed payload/process ownership, and uses real mouse/keyboard input against the normal app. It requires a real display work area of at least 1472×1000 at 100% scale. If the initial native mode is smaller, it enumerates the primary display's supported 32-bpp modes, prefers 1920×1080 (maximum 2560×1440), requires `CDS_TEST` success, and applies only that enumerated mode dynamically with flags 0. It records and independently re-queries the current mode, actual work area, DPI and native window bounds. Finally it restores and verifies the retained original mode. It never writes display registry settings, enables unsafe modes, changes DPI, emulates renderer dimensions, rewrites DOM/CSS, or edits screenshot pixels. If the driver exposes no adequate native mode, capture fails with its actual supported-mode inventory; the existing package qualification and submission remain unaffected.
-
-The three renderer PNGs and their paired native-window captures show a 376–400 second selection from *Spring*, the saved `Festival teaser - Original quality` WebM recipe, and the actual exported clip reopened. `capture-result.json` must say `captured: true` with normal close/uninstall and no errors before images are considered candidates. A human must review the actual PNGs for legibility, completeness and attractiveness before publishing. Even successful capture records set consumer acceptance and qualification claims to false.
-
-The artifact contains only PNGs and JSON provenance; it excludes MSIX files, certificates, keys, source film, and exported clips. Failure evidence may also be retained, clearly marked incomplete. Temporary signing material, owned package/processes, and the exclusively created demo folder are cleaned up.
-
-## Required published attribution
-
-Footage from **Spring (2019)** — © Blender Foundation | [cloud.blender.org/spring](https://cloud.blender.org/spring), directed by Andy Goralczyk. Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Screenshots show a selected excerpt trimmed in CutQuay; no endorsement is implied.
-
-Keep this credit alongside the screenshot gallery or in a clearly linked media credits page. The [official license page](https://studio.blender.org/projects/spring/pages/about/) and [Wikimedia distribution record](https://commons.wikimedia.org/wiki/File:Spring_-_Blender_Open_Movie.webm) provide provenance. The fixed original download is 81,781,205 bytes, SHA-256 `d691a199035cc7d295210b286f8f6734893c7d4358d228081af6f0da98a56343`. Exact URL, license and use information are retained in `media-attribution.json`.
+Footage: **Spring (2019)**, directed by Andy Goralczyk, © Blender Foundation | cloud.blender.org/spring, [CC BY4.0](https://creativecommons.org/licenses/by/4.0/). The original licensed source is imported and a376–400second selection exported. Real screenshots show the selected film frames; no endorsement is implied. Original attribution and byte checks remain in capture_checks.py.

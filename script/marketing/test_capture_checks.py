@@ -8,17 +8,16 @@ import capture_checks as checks
 
 
 class CaptureChecksTests(unittest.TestCase):
-    def test_historical_package_cannot_authorize_renamed_capture(self):
-        self.assertEqual('CutQuay_1.0.0.0_x64.msix',checks.PACKAGE_NAME)
-        self.assertEqual('CutQuay.exe',checks.LOCKED_IDENTITY['executable'])
-        self.assertEqual('1.0.0.0',checks.LOCKED_IDENTITY['version'])
-        with self.assertRaisesRegex(ValueError,'await a newly qualified exact package'):
-            checks.assert_current_capture_binding()
-        with self.assertRaisesRegex(ValueError,'await a newly qualified exact package'):
-            checks.verify_inputs(None,None,None,None,None)
+    def test_current_binding_accepts_reviewed_cliptern_and_rejects_historical_identity(self):
+        checks.assert_current_capture_binding()
+        original=checks.CAPTURE_PRODUCT
+        try:
+            checks.CAPTURE_PRODUCT='CutQuay'
+            with self.assertRaises(ValueError):checks.assert_current_capture_binding()
+        finally:checks.CAPTURE_PRODUCT=original
 
     def fixture(self):
-        ready={'schema_version':1,'product':'CutQuay','store_upload_ready':True,'public_release':False,
+        ready={'schema_version':1,'product':'Cliptern','store_upload_ready':True,'public_release':False,
             'source_commit':checks.SOURCE,'workflow_run_id':checks.RUN,'workflow_run_attempt':'1',
             'identity':checks.LOCKED_IDENTITY,'unsigned_package':dict(checks.PACKAGE,name=checks.PACKAGE_NAME),
             'evidence':{'build-evidence/msix-store-package-record.json':{'bytes':2,'sha256':'0'*64}}}

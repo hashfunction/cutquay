@@ -8,14 +8,14 @@ import sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'msix'))
 import msix_qualification as msix
 
-SOURCE='bd28e72559ee8c06cc320e8c02b82ddb79ef353d'
-RUN='34671595408'
-# Historical qualified package: update only after a fresh Cliptern Windows run and review.
-CAPTURE_PRODUCT='CutQuay'
-LOCKED_IDENTITY={'packageName': '1659hashfunction.CutQuay', 'publisher': 'CN=B6A2631A-FD32-45CC-AE12-82466975F528', 'publisherDisplayName': 'hashfunction', 'version': '1.0.0.0', 'architecture': 'x64', 'applicationId': 'CutQuay', 'executable': 'CutQuay.exe', 'deviceFamily': 'Windows.Desktop', 'minVersion': '10.0.19041.0', 'maxVersionTested': '10.0.26100.0', 'capability': 'runFullTrust'}
-PACKAGE_NAME='CutQuay_1.0.0.0_x64.msix'
-FULL_NAME='1659hashfunction.CutQuay_1.0.0.0_x64__r3hxytd7jt6c4'
-PACKAGE={'bytes':260378673,'sha256':'bfaed1c545107b948e9e240b5041f197548bf8b83179c12c70f27b1d262b40b3'}
+SOURCE='1f2d10d8237e684d5c04113c6c9fe3f199f2f5e6'
+RUN='34681628290'
+# Exact Cliptern package verified from successful Windows run34681628290.
+CAPTURE_PRODUCT='Cliptern'
+LOCKED_IDENTITY={'packageName': '1659hashfunction.CutQuay', 'publisher': 'CN=B6A2631A-FD32-45CC-AE12-82466975F528', 'publisherDisplayName': 'hashfunction', 'version': '1.0.1.0', 'architecture': 'x64', 'applicationId': 'CutQuay', 'executable': 'Cliptern.exe', 'deviceFamily': 'Windows.Desktop', 'minVersion': '10.0.19041.0', 'maxVersionTested': '10.0.26100.0', 'capability': 'runFullTrust'}
+PACKAGE_NAME='Cliptern_1.0.1.0_x64.msix'
+FULL_NAME='1659hashfunction.CutQuay_1.0.1.0_x64__r3hxytd7jt6c4'
+PACKAGE={'bytes':260378239,'sha256':'db4cfd8eb24999260ce23557026c398701a536c2110db6f69950cc53dab34dfa'}
 MEDIA={'bytes':81781205,'sha256':'d691a199035cc7d295210b286f8f6734893c7d4358d228081af6f0da98a56343'}
 MEDIA_URL='https://upload.wikimedia.org/wikipedia/commons/a/a5/Spring_-_Blender_Open_Movie.webm'
 ATTRIBUTION={'title':'Spring (2019)','creator':'Andy Goralczyk / Blender Foundation',
@@ -24,7 +24,7 @@ ATTRIBUTION={'title':'Spring (2019)','creator':'Andy Goralczyk / Blender Foundat
     'official_license_url':'https://studio.blender.org/projects/spring/pages/about/',
     'distribution_page':'https://commons.wikimedia.org/wiki/File:Spring_-_Blender_Open_Movie.webm',
     'download_url':MEDIA_URL,'original':MEDIA,
-    'use':'Unmodified source imported into CutQuay; 376–400 second selection exported losslessly. Real app screenshots include selected film frames. No endorsement implied.'}
+    'use':'Unmodified source imported into Cliptern; 376–400 second selection exported losslessly. Real app screenshots include selected film frames. No endorsement implied.'}
 
 
 def require(value,message):
