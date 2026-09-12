@@ -19,7 +19,7 @@ export function openSendReportDialog({ err, message, state }: {
   state?: unknown,
 }) {
   const reportInstructions = (
-    <p>Describe what happened on the <button type="button" onClick={() => mainApi.openExternal(supportUrl)}>CutQuay support page</button>. The diagnostic text below stays local until you copy and share it.</p>
+    <p>Describe what happened on the <button type="button" onClick={() => mainApi.openExternal(supportUrl)}>Cliptern support page</button>. The diagnostic text below stays local until you copy and share it.</p>
   );
 
   const errorText = (() => {

@@ -70,7 +70,7 @@ export async function commitExportFile({ token }: { token: string }): Promise<Ex
 }
 
 export async function writeExportReport({ path, report }: { path: string, report: ExportReportV1 }) {
-  if (!path.endsWith('.cutquay-report.json')) throw new Error('Invalid report extension');
+  if (!path.endsWith('.cliptern-report.json')) throw new Error('Invalid report extension');
   const validated = exportReportSchema.parse(report);
   const stage = await beginExportFile({ path, sources: validated.sources, overwrite: false });
   if (stage.status !== 'staged') throw new Error('Report already exists');

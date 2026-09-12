@@ -125,7 +125,7 @@ async function runUi(request) {
     const snapshot = async (name) => { const dom = await inspect({ kind: 'snapshot' }); await writeNewJson(path.join(request.evidence, `${name}.json`), dom); const image = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false }); const handle = await open(path.join(request.evidence, `${name}.png`), 'wx'); try { await handle.writeFile(Buffer.from(image.data, 'base64')); } finally { await handle.close(); }steps.push({ action: 'snapshot', name }); return dom; };
     captureFailure = () => snapshot(`${request.phase}-failure`);
     await control({ kind: 'drop' });
-    const before = await snapshot(`${request.phase}-before`); assert(before.title.includes('CutQuay'));
+    const before = await snapshot(`${request.phase}-before`); assert(before.title.includes('Cliptern'));
     const media = request.phase === 'export' ? request.fixture : request.output;
     const beforeHash = await hashFile(media);
     const point = await control({ kind: 'drop' });
@@ -156,7 +156,7 @@ async function runUi(request) {
       await click({ selector: 'button[title="Export selection"]', exposedOnly: true });
       await wait(async () => { const value = await inspect({ kind: 'snapshot' }); return value.text.includes('Success!') && value.text.includes('Open report'); }, 'consumer export success dialog');
       await snapshot('export-success');
-      const reports = (await readdir(path.dirname(request.fixture))).filter((name) => name.endsWith('.cutquay-report.json')); assert.equal(reports.length, 1, 'Expected one new consumer export report');
+      const reports = (await readdir(path.dirname(request.fixture))).filter((name) => name.endsWith('.cliptern-report.json')); assert.equal(reports.length, 1, 'Expected one new consumer export report');
       const reportPath = path.join(path.dirname(request.fixture), reports[0]); const report = JSON.parse(await readFile(reportPath, 'utf8'));
       const exported = report.outputs?.[0]?.path; assert.equal(winCanonical(path.win32.dirname(exported)), winCanonical(path.win32.dirname(request.fixture)));
       const outputHash = await hashFile(exported); const config = JSON.parse(await readFile(path.join(request.config, 'config.json'), 'utf8'));

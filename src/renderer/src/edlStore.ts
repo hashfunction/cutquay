@@ -169,7 +169,7 @@ export async function askForEdlImport({ type, fps, fileDuration }: { type: EdlIm
   else if (type === 'edl') filters = [{ name: i18n.t('EDL'), extensions: ['*'] }];
   else if (type === 'dv-analyzer-summary-txt') filters = [{ name: i18n.t('DV Analyzer Summary.txt'), extensions: ['txt'] }];
   else if (type === 'srt') filters = [{ name: i18n.t('Subtitles (SRT)'), extensions: ['srt'] }];
-  else if (type === 'llc') filters = [{ name: i18n.t('CutQuay project'), extensions: ['llc'] }];
+  else if (type === 'llc') filters = [{ name: i18n.t('Cliptern project'), extensions: ['llc'] }];
 
   const { canceled, filePaths } = await showOpenDialog({
     properties: ['openFile'],
@@ -210,7 +210,7 @@ export async function exportEdlFile({ type, cutSegments, customOutDir, filePath,
     filters = [{ name: i18n.t('Subtitles (SRT)'), extensions: [ext, 'txt'] }];
   } else if (type === 'llc') {
     ext = 'llc';
-    filters = [{ name: i18n.t('CutQuay project'), extensions: [ext, 'llc'] }];
+    filters = [{ name: i18n.t('Cliptern project'), extensions: [ext, 'llc'] }];
   }
 
   const defaultPath = getOutPath({ filePath, customOutDir, fileName: `${basename(filePath)}.${ext}` });

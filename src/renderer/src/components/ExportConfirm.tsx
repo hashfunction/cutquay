@@ -311,7 +311,7 @@ function ExportConfirm({
   }, [showHelpText]);
 
   const onTracksHelpPress = useCallback(() => {
-    showHelpText({ text: i18n.t('Not all formats support all track types, and CutQuay is unable to properly cut some track types, so you may have to sacrifice some tracks by disabling them in order to get correct result.') });
+    showHelpText({ text: i18n.t('Not all formats support all track types, and Cliptern is unable to properly cut some track types, so you may have to sacrifice some tracks by disabling them in order to get correct result.') });
   }, [showHelpText]);
 
   const onSegmentsToChaptersHelpPress = useCallback(() => {
@@ -339,7 +339,7 @@ function ExportConfirm({
     // https://github.com/mifi/lossless-cut/issues/1206
     const texts = {
       make_non_negative: i18n.t('Shift timestamps to make them non-negative. Also note that this affects only leading negative timestamps, and not non-monotonic negative timestamps.'),
-      make_zero: i18n.t('Shift timestamps so that the first timestamp is 0. (CutQuay default)'),
+      make_zero: i18n.t('Shift timestamps so that the first timestamp is 0. (Cliptern default)'),
       auto: i18n.t('Enables shifting when required by the target format.'),
       disabled: i18n.t('Disables shifting of timestamp.'),
     };

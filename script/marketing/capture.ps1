@@ -32,7 +32,7 @@ try{
     $state.config=Join-Path $state.temporary 'settings';New-Item -ItemType Directory $state.config | Out-Null
     $videos=Join-Path $env:USERPROFILE 'Videos'
     if(-not (Test-Path $videos)){New-Item -ItemType Directory $videos | Out-Null}
-    Assert-WorkflowDirectory $videos;$state.work=Join-Path $videos 'CutQuay Demo'
+    Assert-WorkflowDirectory $videos;$state.work=Join-Path $videos 'Cliptern Demo'
     if(Test-Path $state.work){throw 'Existing customer-style demo directory will not be replaced.'}
     New-Item -ItemType Directory $state.work | Out-Null;$state.workOwned=$true
     $media=Join-Path $state.work 'Spring - Blender Foundation.webm'
@@ -40,10 +40,10 @@ try{
     if((Get-WorkflowFileRecord $media).sha256 -cne 'd691a199035cc7d295210b286f8f6734893c7d4358d228081af6f0da98a56343'){throw 'Copied licensed media changed.'}
     $signTool=Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe'
     $signToolRecord=Get-WorkflowFileRecord $signTool
-    $signed=Join-Path $state.temporary 'CutQuay.marketing.signed.msix';[IO.File]::Copy($state.package,$signed,$false)
+    $signed=Join-Path $state.temporary 'Cliptern.marketing.signed.msix';[IO.File]::Copy($state.package,$signed,$false)
     $state.certificate=New-SelfSignedCertificate -Type Custom -KeyUsage DigitalSignature -KeyExportPolicy NonExportable -KeySpec Signature `
         -CertStoreLocation 'Cert:\CurrentUser\My' -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3','2.5.29.19={text}') `
-        -Subject 'CN=B6A2631A-FD32-45CC-AE12-82466975F528' -FriendlyName 'CutQuay ephemeral marketing capture' -NotAfter (Get-Date).AddHours(2)
+        -Subject 'CN=B6A2631A-FD32-45CC-AE12-82466975F528' -FriendlyName 'Cliptern ephemeral marketing capture' -NotAfter (Get-Date).AddHours(2)
     $public=Join-Path $state.temporary 'capture-public.cer';Export-Certificate -Cert $state.certificate -FilePath $public | Out-Null
     $state.trustAttempted=$true;Import-Certificate -FilePath $public -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople' | Out-Null
     Invoke-CheckedNative $signTool @('sign','/fd','SHA256','/sha1',$state.certificate.Thumbprint,'/s','My',$signed)

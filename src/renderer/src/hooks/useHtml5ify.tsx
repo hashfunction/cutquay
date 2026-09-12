@@ -114,7 +114,7 @@ export default function useHtml5ify({ filePath, hasVideo, hasAudio, workingRef, 
               );
             })}
 
-            {showRemember && <Checkbox checked={remember} onCheckedChange={onRememberChange} label={t('Use this for all files until CutQuay is restarted?')} style={{ marginTop: '.5em' }} />}
+            {showRemember && <Checkbox checked={remember} onCheckedChange={onRememberChange} label={t('Use this for all files until Cliptern is restarted?')} style={{ marginTop: '.5em' }} />}
 
             <ButtonRow>
               <Dialog.Close asChild>

@@ -1,4 +1,4 @@
-"""Behavioral tests for the disposable CutQuay MSIX qualification package.
+"""Behavioral tests for the disposable Cliptern MSIX qualification package.
 
 Copyright 2026 Trieflow LLC. MIT licensed.
 """
@@ -37,7 +37,7 @@ class QualificationFixture(unittest.TestCase):
 		self.artwork = self.source / 'icon.png'
 		self.artwork.write_bytes((Path(__file__).resolve().parents[2] / 'icon-build/app-512.png').read_bytes())
 		self.source_files = {
-			'package.json': json.dumps({'name':'cutquay','productName':'CutQuay','version':'1.0.0',
+			'package.json': json.dumps({'name':'cliptern','productName':'Cliptern','version':'1.0.1',
 				'main':'./out/main/index.js','devDependencies':{'electron':'42.11.3'}}).encode(),
 			'yarn.lock': b'locked fixture', 'LICENSE':b'application license', 'NOTICE':b'application notice',
 			'licenses.txt':b'dependency notices', 'Release/THIRD-PARTY-NOTICES.txt':b'third party notices',
@@ -72,7 +72,7 @@ class QualificationFixture(unittest.TestCase):
 		files = {('LICENSE.electron.txt' if name == 'LICENSE' else name):data for name,data in self.runtime.items()}
 		files.update(self.media)
 		files.update({'resources/'+name:data for name,data in self.native_sources.items()})
-		files.update({'CutQuay.exe':b'branded executable', 'resources/FFmpeg-LICENSE.txt':b'ffmpeg notice',
+		files.update({'Cliptern.exe':b'branded executable', 'resources/FFmpeg-LICENSE.txt':b'ffmpeg notice',
 			'resources/locales/en/translation.json':b'{}'})
 		for name,data in files.items():
 			path = self.release / name
@@ -106,7 +106,10 @@ class ManifestTests(QualificationFixture):
 		self.assertEqual('CN=B6A2631A-FD32-45CC-AE12-82466975F528', identity['publisher'])
 		self.assertEqual('hashfunction', identity['publisherDisplayName'])
 		self.assertEqual('CutQuay', identity['applicationId'])
-		self.assertEqual('1.0.0.0', identity['version'])
+		self.assertEqual('1.0.1.0', identity['version'])
+		self.assertEqual('Cliptern.exe', identity['executable'])
+		self.assertIn(b'<DisplayName>Cliptern</DisplayName>', data)
+		self.assertIn(b'DisplayName="Cliptern"', data)
 		self.assertEqual('Windows.Desktop', identity['deviceFamily'])
 		self.assertIn(b'<PublisherDisplayName>hashfunction</PublisherDisplayName>', data)
 		self.assertNotIn(b'Qualification', data)
@@ -128,10 +131,14 @@ class ManifestTests(QualificationFixture):
 			(b'1659hashfunction.CutQuay', b'Trieflow.CutQuay.Qualification'),
 			(b'CN=B6A2631A-FD32-45CC-AE12-82466975F528', b'CN=CutQuay-CI-Qualification'),
 			(b'>hashfunction<', b'>Trieflow LLC<'),
-			(b'Version="1.0.0.0"', b'Version="2.0.0.0"'),
+			(b'Version="1.0.1.0"', b'Version="2.0.0.0"'),
 			(b'ProcessorArchitecture="x64"', b'ProcessorArchitecture="arm64"'),
 			(b'Id="CutQuay"', b'Id="Other"'),
-			(b'CutQuay.exe', b'other.exe'),
+			(b'Cliptern.exe', b'other.exe'),
+			(b'Cliptern.exe', b'CutQuay.exe'),
+			(b'<DisplayName>Cliptern</DisplayName>', b'<DisplayName>CutQuay</DisplayName>'),
+			(b'DisplayName="Cliptern"', b'DisplayName="CutQuay"'),
+			(b'Version="1.0.1.0"', b'Version="1.0.0.0"'),
 			(b'Windows.Desktop', b'Windows.Universal'),
 			(b'runFullTrust', b'internetClient'),
 		):
@@ -150,7 +157,7 @@ class ManifestTests(QualificationFixture):
 		with self.assertRaisesRegex(ValueError, 'capabilit'):
 			msix.validate_manifest(data.replace(b'</Capabilities>', b'<rescap:Capability Name="internetClient"/></Capabilities>'))
 		with self.assertRaisesRegex(ValueError, 'executable'):
-			msix.validate_manifest(data.replace(b'CutQuay.exe', b'other.exe'))
+			msix.validate_manifest(data.replace(b'Cliptern.exe', b'other.exe'))
 		with self.assertRaisesRegex(ValueError, 'properties'):
 			msix.validate_manifest(data.replace(b'</Properties>', b'<DisplayName>CutQuay</DisplayName></Properties>'))
 
@@ -331,7 +338,7 @@ class StageTests(QualificationFixture):
 
 	def test_staging_revalidates_actual_source_artwork_and_release_after_copy(self):
 		original_copy = shutil.copyfileobj
-		for target in (self.source/'NOTICE', self.artwork, self.release/'CutQuay.exe'):
+		for target in (self.source/'NOTICE', self.artwork, self.release/'Cliptern.exe'):
 			with self.subTest(target=target):
 				before = target.read_bytes()
 				changed = []
@@ -415,7 +422,7 @@ class PackageVerificationTests(QualificationFixture):
 
 	def test_opc_decoding_rejects_aliases_traversal_and_malformed_names(self):
 		package, record = self.package()
-		for name in ('%43utQuay.exe', 'bin%2FCutQuay.exe', 'bin%5cCutQuay.exe',
+		for name in ('%43utQuay.exe', 'bin%2FCliptern.exe', 'bin%5cCliptern.exe',
 			'bin/%2e%2e/escaped.txt', '%2Fabsolute.txt', 'share/bad%GG.txt',
 			'share/bad%.txt', 'share/bad%FF.txt', 'share/bad%00.txt'):
 			with self.subTest(name=name):
@@ -427,7 +434,7 @@ class PackageVerificationTests(QualificationFixture):
 					msix.verify_msix(changed, record['payload'])
 
 	def test_independent_zip_verifier_rejects_tamper_and_manifest_semantics(self):
-		package, record = self.package(('CutQuay.exe', b'tampered'))
+		package, record = self.package(('Cliptern.exe', b'tampered'))
 		with self.assertRaisesRegex(ValueError, 'hash|size'):
 			msix.verify_msix(package, record['payload'])
 		shutil.rmtree(self.root / 'stage')
@@ -441,7 +448,7 @@ class PackageVerificationTests(QualificationFixture):
 	def test_independent_zip_verifier_rejects_case_alias(self):
 		package, record = self.package()
 		with zipfile.ZipFile(package, 'a') as archive:
-			archive.writestr('CUTQUAY.exe', b'alias')
+			archive.writestr('CLIPTERN.exe', b'alias')
 		with self.assertRaisesRegex(ValueError, 'alias'):
 			msix.verify_msix(package, record['payload'])
 
@@ -454,7 +461,7 @@ class PackageVerificationTests(QualificationFixture):
 
 	def test_zip_rejects_file_directory_unicode_and_encoded_aliases(self):
 		package,record = self.package()
-		for name in ('CutQuay.exe/child','cutquay.exe','%43utQuay.exe','resources/app.asar/child',
+		for name in ('Cliptern.exe/child','cliptern.exe','%43liptern.exe','resources/app.asar/child',
 			'resources/%2e%2e/x','resources/bad%FF','resources/bad%','resources/NUL.txt'):
 			with self.subTest(name=name):
 				candidate=self.root/'unsafe.msix'; shutil.copyfile(package,candidate)
@@ -468,7 +475,7 @@ class PackageVerificationTests(QualificationFixture):
 
 	def test_sdk_unpacked_hashes_reject_changed_missing_and_extra_files(self):
 		record=self.stage(); stage=self.root/'stage'
-		for name,data in [('CutQuay.exe',b'changed'),('extra.dll',b'unreviewed')]:
+		for name,data in [('Cliptern.exe',b'changed'),('extra.dll',b'unreviewed')]:
 			path=stage/name; before=path.read_bytes() if path.exists() else None
 			path.write_bytes(data)
 			with self.assertRaises(ValueError): msix.verify_unpacked(stage,record['payload'])
@@ -543,7 +550,7 @@ class BuildFlowTests(QualificationFixture):
 		self.assertFalse(record['installationQualificationPassed'])
 		self.assertFalse(record['publicRelease'])
 		self.assertEqual(sha(self.makeappx.read_bytes()), record['makeAppx']['sha256'])
-		package = self.output / 'CutQuay.Qualification_1.0.0.0_x64.msix'
+		package = self.output / 'Cliptern.Qualification_1.0.1.0_x64.msix'
 		self.assertEqual(sha(package.read_bytes()), record['containerVerification']['package']['sha256'])
 
 	def test_store_build_and_independent_verifiers_require_explicit_mode(self):
@@ -551,7 +558,7 @@ class BuildFlowTests(QualificationFixture):
 			'10.0.26100.0', self.output, self.fake_sdk, self.source, self.electron, self.checksums,
 			identity_mode='store')
 		record = json.loads((self.output/'package-record.json').read_text())
-		package = self.output/'CutQuay.Store_1.0.0.0_x64.msix'
+		package = self.output/'Cliptern.Store_1.0.1.0_x64.msix'
 		self.assertEqual('store', record['identityMode'])
 		self.assertFalse(record['qualificationIdentityOnly'])
 		self.assertTrue(record['storeIdentityUsed'])

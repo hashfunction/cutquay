@@ -185,8 +185,8 @@ def validate_workflow(workflow, commit, package, payload, runtime, load, raw, he
         brokers.append((driver['broker_process_id'], driver['broker_start_ticks']))
         modules = load(f'workflow-{phase}/loaded-modules.json')
         require(any(row.get('process_id') == ui['brokerProcessId'] and row.get('origin') == 'package'
-            and row.get('relative_path') == 'CutQuay.exe' and row.get('sha256') == payload['CutQuay.exe']['sha256']
-            and windows_path(row['path']) == windows_path(str(root / 'CutQuay.exe')) for row in modules),
+            and row.get('relative_path') == 'Cliptern.exe' and row.get('sha256') == payload['Cliptern.exe']['sha256']
+            and windows_path(row['path']) == windows_path(str(root / 'Cliptern.exe')) for row in modules),
             'Consumer broker lacks the exact installed executable observation')
     require(brokers[0] != brokers[1], 'Reopen did not use a fresh consumer process')
     trim = load('workflow-export/trim-entered.json')

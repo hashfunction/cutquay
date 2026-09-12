@@ -16,7 +16,7 @@ const sharp = require('sharp');
 const generatedArtwork = await sharp(regular(path.join(source,'src/renderer/src/icon.svg'))).png().resize(512,512,{fit:sharp.fit.contain,background:{r:0,g:0,b:0,alpha:0}}).toBuffer();
 if (!generatedArtwork.equals(regular(artwork))) throw Error('Artwork does not match actual original SVG generator output');
 const sourcePackage = JSON.parse(regular(path.join(source, 'package.json')));
-if (sourcePackage.name !== 'cutquay' || sourcePackage.productName !== 'CutQuay' || sourcePackage.version !== '1.0.0' || sourcePackage.main !== './out/main/index.js') throw Error('Unexpected source application metadata');
+if (sourcePackage.name !== 'cliptern' || sourcePackage.productName !== 'Cliptern' || sourcePackage.version !== '1.0.1' || sourcePackage.main !== './out/main/index.js') throw Error('Unexpected source application metadata');
 const files = {};
 function visit(directory, prefix = '') {
   for (const [name, node] of Object.entries(directory.files)) {

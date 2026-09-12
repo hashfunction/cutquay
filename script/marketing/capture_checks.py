@@ -10,6 +10,9 @@ import msix_qualification as msix
 
 SOURCE='bd28e72559ee8c06cc320e8c02b82ddb79ef353d'
 RUN='34671595408'
+# Historical qualified package: update only after a fresh Cliptern Windows run and review.
+CAPTURE_PRODUCT='CutQuay'
+LOCKED_IDENTITY={'packageName': '1659hashfunction.CutQuay', 'publisher': 'CN=B6A2631A-FD32-45CC-AE12-82466975F528', 'publisherDisplayName': 'hashfunction', 'version': '1.0.0.0', 'architecture': 'x64', 'applicationId': 'CutQuay', 'executable': 'CutQuay.exe', 'deviceFamily': 'Windows.Desktop', 'minVersion': '10.0.19041.0', 'maxVersionTested': '10.0.26100.0', 'capability': 'runFullTrust'}
 PACKAGE_NAME='CutQuay_1.0.0.0_x64.msix'
 FULL_NAME='1659hashfunction.CutQuay_1.0.0.0_x64__r3hxytd7jt6c4'
 PACKAGE={'bytes':260378673,'sha256':'bfaed1c545107b948e9e240b5041f197548bf8b83179c12c70f27b1d262b40b3'}
@@ -53,9 +56,9 @@ def validate_receipts(ready,installed,run):
     require(run.get('id')==int(RUN) and run.get('head_sha')==SOURCE and type(run.get('run_attempt')) is int and run['run_attempt']==1
         and run.get('conclusion')=='success' and run.get('repository',{}).get('full_name')=='hashfunction/cutquay'
         and run.get('path')=='.github/workflows/windows.yml','Pinned successful qualification run differs')
-    require(type(ready.get('schema_version')) is int and ready['schema_version']==1 and ready.get('product')=='CutQuay'
+    require(type(ready.get('schema_version')) is int and ready['schema_version']==1 and ready.get('product')==CAPTURE_PRODUCT
         and ready.get('store_upload_ready') is True and ready.get('public_release') is False
-        and ready.get('identity')==msix.STORE_IDENTITY
+        and ready.get('identity')==LOCKED_IDENTITY
         and ready.get('unsigned_package')==dict(PACKAGE,name=PACKAGE_NAME),'Pinned unsigned Store readiness receipt differs')
     for receipt in (ready,installed):
         require(receipt.get('source_commit')==SOURCE and receipt.get('workflow_run_id')==RUN
@@ -81,12 +84,18 @@ def verify_evidence(ready,metadata,source):
 def validate_media(actual):require(actual==MEDIA,'Pinned licensed source media differs')
 
 
+def assert_current_capture_binding():
+    require(CAPTURE_PRODUCT=='Cliptern' and LOCKED_IDENTITY==msix.STORE_IDENTITY,
+        'Cliptern screenshots await a newly qualified exact package; historical CutQuay binding is retained')
+
+
 def verify_inputs(package,ready_path,metadata,source,run):
+    assert_current_capture_binding()
     require(digest(package)==PACKAGE,'Exact qualified package bytes differ')
     ready=read_json(ready_path);installed=read_json(Path(metadata)/'msix-store-install/installation-qualification.json')
     validate_receipts(ready,installed,run);verify_evidence(ready,metadata,source)
     record=read_json(Path(metadata)/'msix-store-package-record.json')
-    require(record['sourceCommit']==SOURCE and record['identityMode']=='store' and record['identity']==msix.STORE_IDENTITY,
+    require(record['sourceCommit']==SOURCE and record['identityMode']=='store' and record['identity']==LOCKED_IDENTITY,
         'Qualified package record identity differs')
     require(msix.verify_msix(Path(package),record['payload'],'store')==record['containerVerification'],
         'Actual unsigned container differs from retained exact payload')

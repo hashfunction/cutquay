@@ -10,7 +10,7 @@ import { startReport, finishReport } from '../common/exportReport.js';
 import { recipe } from '../common/exportRecipe.fixture.js';
 
 let dir: string;
-beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), 'cutquay-test-')); });
+beforeEach(async () => { dir = await mkdtemp(join(tmpdir(), 'cliptern-test-')); });
 afterEach(async () => { await rm(dir, { recursive: true, force: true }); });
 const io = { beginExportFile, commitExportFile, discardExportFile };
 
@@ -95,11 +95,11 @@ describe('atomic export publication with real filesystem fixtures', () => {
     expect(await readdir(dir)).toEqual(['replace.mkv']);
   });
   it('writes a valid immutable report without replacing an existing report', async () => {
-    const path = join(dir, 'result.cutquay-report.json');
+    const path = join(dir, 'result.cliptern-report.json');
     const report = finishReport(startReport({ operation: 'cut', recipe, sources: [], segments: [], effective: {} }), { outputs: [] });
     await writeExportReport({ path, report });
     expect(JSON.parse(await readFile(path, 'utf8')).runId).toBe(report.runId);
     await expect(writeExportReport({ path, report })).rejects.toThrow();
-    expect(await readdir(dir)).toEqual(['result.cutquay-report.json']);
+    expect(await readdir(dir)).toEqual(['result.cliptern-report.json']);
   });
 });

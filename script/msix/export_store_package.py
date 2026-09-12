@@ -14,8 +14,8 @@ import msix_qualification as msix
 from source_publication import MANIFEST_URL, SOURCE_FILES, digest, require, validate_publication
 from store_workflow_evidence import validate_workflow
 
-PACKAGE_NAME = 'CutQuay_1.0.0.0_x64.msix'
-PACKAGE_FULL_NAME = '1659hashfunction.CutQuay_1.0.0.0_x64__r3hxytd7jt6c4'
+PACKAGE_NAME = 'Cliptern_1.0.1.0_x64.msix'
+PACKAGE_FULL_NAME = '1659hashfunction.CutQuay_1.0.1.0_x64__r3hxytd7jt6c4'
 
 
 def read_bytes(path):
@@ -85,7 +85,7 @@ def export_store_package(package, source, release, artwork, electron_archive, ch
             and installed.get('qualification_identity_only') is False and installed.get('store_identity_used') is True,
             'Store installation identity differs')
         for key in ('windows_native_startup',): require(native.get(key) is True, 'Native Windows startup did not pass')
-        require(native.get('window_title')=='CutQuay 1.0.0', 'Native startup title differs')
+        require(native.get('window_title')=='Cliptern 1.0.1', 'Native startup title differs')
         for key in ('add_appx_completed','registration_ownership_established','unsigned_package_unchanged',
                     'diagnostic_clean_close_verified','clean_close_verified','uninstall_verified',
                     'installation_qualification_passed','export_workflow_tested'):
@@ -102,7 +102,7 @@ def export_store_package(package, source, release, artwork, electron_archive, ch
         require(record['releaseInput']==current, 'Release runtime changed after packaging')
         require(record['runtime']==msix.validate_runtime(release,source,electron_archive,checksums,current,artwork),
             'Runtime/source provenance changed after packaging')
-        exe=current['CutQuay.exe']['sha256']
+        exe=current['Cliptern.exe']['sha256']
         require(native['executable_sha256'].lower()==exe==installed['executable_sha256'], 'Native and installed executable hashes differ')
         require(native['generated_notices_sha256']==digest(read_bytes(source/'licenses.txt'))['sha256'], 'Generated notices changed after native qualification')
         artwork_data=read_bytes(artwork)
@@ -133,7 +133,7 @@ def export_store_package(package, source, release, artwork, electron_archive, ch
             msix.validate_source_checkout(source,commit)
         # Recheck consumed inputs after the network request and after the copy.
         verify_inputs_unchanged()
-        ready={'schema_version':1,'product':'CutQuay','store_upload_ready':True,'submitted':False,'public_release':False,
+        ready={'schema_version':1,'product':'Cliptern','store_upload_ready':True,'submitted':False,'public_release':False,
             'source_commit':commit,'application_source_url':f'https://github.com/hashfunction/cutquay/tree/{commit}',
             'workflow_run_id':run_id,'workflow_run_attempt':attempt,
             'workflow_url':f'https://github.com/hashfunction/cutquay/actions/runs/{run_id}',
@@ -164,7 +164,7 @@ def main():
         parser.add_argument('--'+name,type=Path,required=True)
     args=parser.parse_args()
     require(sys.platform=='win32' and os.environ.get('CI')=='true' and os.environ.get('GITHUB_REPOSITORY')=='hashfunction/cutquay',
-        'Store export requires the disposable CutQuay Windows workflow')
+        'Store export requires the disposable Cliptern Windows workflow')
     export_store_package(args.package,args.source,args.release,args.artwork,args.electron_archive,args.checksums,args.output,
         os.environ.get('GITHUB_SHA'),os.environ.get('GITHUB_RUN_ID'),os.environ.get('GITHUB_RUN_ATTEMPT'))
     print('PASS: exact unsigned Store package retained after native, installed workflow, cleanup and source-publication verification')

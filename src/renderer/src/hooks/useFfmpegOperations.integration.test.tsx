@@ -38,7 +38,7 @@ let renderOperations: (input: string, overwrite: boolean) => void;
 
 beforeAll(async () => {
   if (ffmpegDir === undefined) return;
-  dir = await mkdtemp(join(tmpdir(), 'cutquay-media-'));
+  dir = await mkdtemp(join(tmpdir(), 'cliptern-media-'));
   source = join(dir, '日本語 fixture.mkv');
   const ffmpeg = await import('../../../main/ffmpeg');
   ffmpeg.setCustomFfPath(ffmpegDir);

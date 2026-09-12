@@ -202,7 +202,7 @@ function Settings({
 
         {showAdvancedSettings && (
           <Row>
-            <KeyCell>{t('Allow multiple instances of CutQuay to run concurrently? (experimental)')}</KeyCell>
+            <KeyCell>{t('Allow multiple instances of Cliptern to run concurrently? (experimental)')}</KeyCell>
             <td>
               <Switch checked={allowMultipleInstances} onCheckedChange={setAllowMultipleInstances} />
             </td>

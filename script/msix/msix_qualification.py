@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and independently verify a disposable CutQuay qualification MSIX.
+"""Build and independently verify a disposable Cliptern qualification MSIX.
 
 Copyright 2026 Trieflow LLC. MIT licensed. The installation-flow design retains
 attribution for the MIT ReticleQuay helper in RETICLEQUAY-MIT.txt.
@@ -35,10 +35,10 @@ QUALIFICATION_IDENTITY = {
 	'packageName': 'Trieflow.CutQuay.Qualification',
 	'publisher': 'CN=CutQuay-CI-Qualification',
 	'publisherDisplayName': 'Trieflow LLC',
-	'version': '1.0.0.0',
+	'version': '1.0.1.0',
 	'architecture': 'x64',
 	'applicationId': 'CutQuay',
-	'executable': r'CutQuay.exe',
+	'executable': r'Cliptern.exe',
 	'deviceFamily': 'Windows.Desktop',
 	'minVersion': '10.0.19041.0',
 	'maxVersionTested': '10.0.26100.0',
@@ -55,7 +55,7 @@ def selected_identity(identity_mode):
 
 
 REQUIRED_RELEASE_FILES = (
-	'CutQuay.exe','resources/app.asar','LICENSE.electron.txt','LICENSES.chromium.html',
+	'Cliptern.exe','resources/app.asar','LICENSE.electron.txt','LICENSES.chromium.html',
 	'icudtl.dat','resources.pak','chrome_100_percent.pak','chrome_200_percent.pak',
 	'v8_context_snapshot.bin','libEGL.dll','libGLESv2.dll','ffmpeg.dll',
 	'resources/ffmpeg.exe','resources/ffprobe.exe','resources/FFmpeg-LICENSE.txt',
@@ -192,7 +192,7 @@ def validate_runtime(release, source, electron_archive, checksums, input_invento
 	with _regular_stream(checksums) as stream: checksum_bytes = stream.read()
 	matches = re.findall(r'^([0-9a-fA-F]{64}) [ *]' + re.escape(archive_name) + r'\r?$', checksum_bytes.decode('utf-8'), re.M)
 	if len(matches) != 1 or matches[0].lower() != archive_hash['sha256']: raise ValueError('Electron archive checksum mismatch')
-	allowed = {'CutQuay.exe', 'resources/app.asar'}
+	allowed = {'Cliptern.exe', 'resources/app.asar'}
 	electron_files = {}
 	seen = {}
 	with zipfile.ZipFile(electron_archive) as archive:
@@ -261,7 +261,7 @@ def validate_runtime(release, source, electron_archive, checksums, input_invento
 
 def create_manifest(identity_mode='qualification'):
 	identity = selected_identity(identity_mode)
-	description = 'Trim videos and save reusable export recipes' if identity_mode == 'store' else 'CutQuay qualification package'
+	description = 'Trim videos and save reusable export recipes' if identity_mode == 'store' else 'Cliptern qualification package'
 	package = ET.Element(f'{{{APPX_NS}}}Package', {'IgnorableNamespaces': 'uap rescap'})
 	ET.SubElement(package, f'{{{APPX_NS}}}Identity', {
 		'Name': identity['packageName'], 'Publisher': identity['publisher'],
@@ -269,7 +269,7 @@ def create_manifest(identity_mode='qualification'):
 	})
 	properties = ET.SubElement(package, f'{{{APPX_NS}}}Properties')
 	for name, value in (
-		('DisplayName', 'CutQuay'), ('PublisherDisplayName', identity['publisherDisplayName']),
+		('DisplayName', 'Cliptern'), ('PublisherDisplayName', identity['publisherDisplayName']),
 		('Description', description), ('Logo', r'Assets\StoreLogo.png'),
 	):
 		ET.SubElement(properties, f'{{{APPX_NS}}}{name}').text = value
@@ -286,7 +286,7 @@ def create_manifest(identity_mode='qualification'):
 		'EntryPoint': 'Windows.FullTrustApplication',
 	})
 	ET.SubElement(application, f'{{{UAP_NS}}}VisualElements', {
-		'DisplayName': 'CutQuay', 'Description': description,
+		'DisplayName': 'Cliptern', 'Description': description,
 		'BackgroundColor': '#142e38', 'Square150x150Logo': r'Assets\Square150x150Logo.png',
 		'Square44x44Logo': r'Assets\Square44x44Logo.png',
 	})
@@ -305,7 +305,7 @@ def _one(parent, tag, label):
 
 def validate_manifest(data, identity_mode='qualification'):
 	identity = selected_identity(identity_mode)
-	description = 'Trim videos and save reusable export recipes' if identity_mode == 'store' else 'CutQuay qualification package'
+	description = 'Trim videos and save reusable export recipes' if identity_mode == 'store' else 'Cliptern qualification package'
 	try:
 		root = ET.fromstring(data)
 	except ET.ParseError as error:
@@ -326,7 +326,7 @@ def validate_manifest(data, identity_mode='qualification'):
 		raise ValueError('Unexpected selected package identity')
 	properties = _one(root, f'{{{APPX_NS}}}Properties', 'properties')
 	expected_properties = {
-		'DisplayName': 'CutQuay', 'PublisherDisplayName': identity['publisherDisplayName'],
+		'DisplayName': 'Cliptern', 'PublisherDisplayName': identity['publisherDisplayName'],
 		'Description': description, 'Logo': r'Assets\StoreLogo.png',
 	}
 	if len(properties) != len(expected_properties) \
@@ -347,7 +347,7 @@ def validate_manifest(data, identity_mode='qualification'):
 		raise ValueError('Unexpected manifest executable/application')
 	visual = _one(application, f'{{{UAP_NS}}}VisualElements', 'visual elements')
 	if len(application) != 1 or visual.attrib != {
-		'DisplayName': 'CutQuay', 'Description': description,
+		'DisplayName': 'Cliptern', 'Description': description,
 		'BackgroundColor': '#142e38', 'Square150x150Logo': r'Assets\Square150x150Logo.png',
 		'Square44x44Logo': r'Assets\Square44x44Logo.png',
 	} or len(visual):
@@ -633,7 +633,7 @@ def build_qualification(release, artwork, source_commit, makeappx, sdk_version, 
 		tool = _tool_record(makeappx, sdk_version)
 		stage = temporary / 'stage'
 		record = stage_release(release, artwork, stage, source_commit, source_root, electron_archive, checksums, identity_mode)
-		package = temporary / ('CutQuay.Store_1.0.0.0_x64.msix' if identity_mode == 'store' else 'CutQuay.Qualification_1.0.0.0_x64.msix')
+		package = temporary / ('Cliptern.Store_1.0.1.0_x64.msix' if identity_mode == 'store' else 'Cliptern.Qualification_1.0.1.0_x64.msix')
 		unpacked = temporary / 'unpacked'
 		commands = [
 			[str(makeappx), 'pack', '/d', str(stage), '/p', str(package), '/v', '/h', 'SHA256'],

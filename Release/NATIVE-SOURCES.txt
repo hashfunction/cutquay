@@ -1,7 +1,7 @@
-CutQuay: native components, licenses and corresponding source
+Cliptern: native components, licenses and corresponding source
 
 Source downloads and build information:
-https://cutquay.trieflow.com/source
+https://cliptern.trieflow.com/source
 https://github.com/hashfunction/cutquay/releases/tag/native-sources-2026-09-10
 
 The accompanying native-source-manifest.json lists the source archive sizes,
@@ -32,5 +32,5 @@ build guide. The manifest identifies the exact binary archive and source pins.
 
 These notices do not replace or narrow any upstream license. The components
 are provided without warranty, subject to their respective license terms.
-The CutQuay application license and dependency notices are also retained in
+The Cliptern application license and dependency notices are also retained in
 resources/app.asar as LICENSE, NOTICE, licenses.txt and Release notices.

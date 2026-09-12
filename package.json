@@ -1,11 +1,11 @@
 {
-  "name": "cutquay",
-  "productName": "CutQuay",
+  "name": "cliptern",
+  "productName": "Cliptern",
   "description": "Lossless video and audio editing with named export recipes and local export reports",
   "copyright": "Copyright © 2026 Trieflow LLC; portions © 2016–2026 Mikael Finstad",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./out/main/index.js",
-  "homepage": "https://cutquay.trieflow.com",
+  "homepage": "https://cliptern.trieflow.com",
   "type": "module",
   "scripts": {
     "clean": "rimraf dist out common-ts-dist main-ts-dist build-resources icon-build",
@@ -36,11 +36,11 @@
   },
   "author": {
     "name": "Trieflow LLC",
-    "url": "https://cutquay.trieflow.com"
+    "url": "https://cliptern.trieflow.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mifi/lossless-cut.git"
+    "url": "https://github.com/hashfunction/cutquay.git"
   },
   "license": "GPL-2.0-only",
   "devDependencies": {
@@ -429,10 +429,10 @@
           "role": "Viewer"
         }
       ],
-      "executableName": "CutQuay"
+      "executableName": "Cliptern"
     },
     "linux": {
-      "executableName": "cutquay",
+      "executableName": "cliptern",
       "extraResources": [
         {
           "from": "ffmpeg/linux-${arch}/lib",

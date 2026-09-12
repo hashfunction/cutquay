@@ -1,6 +1,6 @@
-export const homepageUrl = 'https://cutquay.trieflow.com';
-export const privacyUrl = 'https://cutquay.trieflow.com/privacy';
-export const supportUrl = 'https://cutquay.trieflow.com/support';
+export const homepageUrl = 'https://cliptern.trieflow.com';
+export const privacyUrl = 'https://cliptern.trieflow.com/privacy';
+export const supportUrl = 'https://cliptern.trieflow.com/support';
 export const githubUrl = homepageUrl;
 export const getReleaseUrl = (version: string) => `${homepageUrl}/#version=${encodeURIComponent(version)}`;
 export const compareReleasesUrl = (fromVersion: string, toVersion: string) => `${homepageUrl}/#changes=${encodeURIComponent(fromVersion)}-${encodeURIComponent(toVersion)}`;

@@ -60,14 +60,14 @@ foreach ($scenario in @('failed-add-race','ambiguous-add','wrong-architecture','
     $temporary=Join-Path ([IO.Path]::GetTempPath()) ('cutquay-registration-test-'+[guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory $temporary | Out-Null
     try {
-        $owned=[pscustomobject]@{Name='Trieflow.CutQuay.Qualification';Publisher='CN=CutQuay-CI-Qualification';Version='1.0.0.0';Architecture='X64';PackageFullName='Trieflow.CutQuay.Qualification_1.0.0.0_x64__fixture';PackageFamilyName='Trieflow.CutQuay.Qualification_fixture';InstallLocation=$temporary}
+        $owned=[pscustomobject]@{Name='Trieflow.CutQuay.Qualification';Publisher='CN=CutQuay-CI-Qualification';Version='1.0.1.0';Architecture='X64';PackageFullName='Trieflow.CutQuay.Qualification_1.0.1.0_x64__fixture';PackageFamilyName='Trieflow.CutQuay.Qualification_fixture';InstallLocation=$temporary}
         if ($mode -ceq 'store') {
             $owned.Name='1659hashfunction.CutQuay'
             $owned.Publisher='CN=B6A2631A-FD32-45CC-AE12-82466975F528'
-            $owned.PackageFullName='1659hashfunction.CutQuay_1.0.0.0_x64__fixture'
+            $owned.PackageFullName='1659hashfunction.CutQuay_1.0.1.0_x64__fixture'
             $owned.PackageFamilyName='1659hashfunction.CutQuay_fixture'
         }
-        $foreign=[pscustomobject]@{Name=$owned.Name;Publisher=$owned.Publisher;Version=$owned.Version;Architecture='Arm64';PackageFullName='Trieflow.CutQuay.Qualification_1.0.0.0_arm64__fixture';PackageFamilyName=$owned.PackageFamilyName;InstallLocation=$temporary}
+        $foreign=[pscustomobject]@{Name=$owned.Name;Publisher=$owned.Publisher;Version=$owned.Version;Architecture='Arm64';PackageFullName='Trieflow.CutQuay.Qualification_1.0.1.0_arm64__fixture';PackageFamilyName=$owned.PackageFamilyName;InstallLocation=$temporary}
         $foreign.PackageFullName=$owned.Name+'_1.0.0.0_arm64__fixture'
         # The racing registration has the exact expected x64 full name; a name/
         # architecture match still cannot establish ownership after our Add failed.

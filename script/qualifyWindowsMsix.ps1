@@ -27,8 +27,8 @@ Invoke-Checked $powerShell @('-NoLogo','-NoProfile','-File','script/msix/test_wo
 $sourceCommit = (git rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0 -or $sourceCommit -cne $env:GITHUB_SHA) { throw 'Source commit differs from this qualification run.' }
 $baseline = Get-Content build-evidence/windows-startup.json -Raw | ConvertFrom-Json
-if (-not $baseline.windows_native_startup -or $baseline.source_commit -cne $sourceCommit -or $baseline.window_title -cne 'CutQuay 1.0.0') { throw 'Exact source/native startup qualification is required before MSIX.' }
-$exeHash = (Get-FileHash dist/win-unpacked/CutQuay.exe -Algorithm SHA256).Hash
+if (-not $baseline.windows_native_startup -or $baseline.source_commit -cne $sourceCommit -or $baseline.window_title -cne 'Cliptern 1.0.1') { throw 'Exact source/native startup qualification is required before MSIX.' }
+$exeHash = (Get-FileHash dist/win-unpacked/Cliptern.exe -Algorithm SHA256).Hash
 if ($exeHash -cne $baseline.executable_sha256) { throw 'Native executable changed since baseline qualification.' }
 $electronInput = Join-Path $env:RUNNER_TEMP ('cutquay-electron-input-' + [guid]::NewGuid().ToString('N'))
 Invoke-Checked node @('script/msix/prepare-electron-input.cjs',$electronInput)
@@ -37,7 +37,7 @@ $sdkVersion = '10.0.26100.0'
 $sdkDirectory = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin\$sdkVersion\x64"
 $packageOutput = Join-Path $env:RUNNER_TEMP ('cutquay-msix-package-' + [guid]::NewGuid().ToString('N'))
 Invoke-Checked python @('script/msix/msix_qualification.py','--release','dist/win-unpacked','--artwork','icon-build/app-512.png','--source-root','.','--source-commit',$sourceCommit,'--makeappx',(Join-Path $sdkDirectory 'makeappx.exe'),'--sdk-version',$sdkVersion,'--output',$packageOutput,'--electron-archive',(Join-Path $electronInput "electron-v$electronVersion-win32-x64.zip"),'--electron-checksums',(Join-Path $electronInput 'SHASUMS256.txt'),'--identity-mode',$IdentityMode)
-$packageName=if ($IdentityMode -ceq 'store') {'CutQuay.Store_1.0.0.0_x64.msix'} else {'CutQuay.Qualification_1.0.0.0_x64.msix'}
+$packageName=if ($IdentityMode -ceq 'store') {'Cliptern.Store_1.0.1.0_x64.msix'} else {'Cliptern.Qualification_1.0.1.0_x64.msix'}
 $recordOutput=if ($IdentityMode -ceq 'store') {'build-evidence/msix-store-package-record.json'} else {'build-evidence/msix-package-record.json'}
 $installOutput=if ($IdentityMode -ceq 'store') {'build-evidence/msix-store-install'} else {'build-evidence/msix-install'}
 [IO.File]::Copy((Join-Path $packageOutput 'package-record.json'), (Join-Path (Get-Location) $recordOutput), $false)

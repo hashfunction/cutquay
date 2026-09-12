@@ -30,8 +30,8 @@ function Assert-MarketingProcess($State){
     $process=$State.process
     if(-not $process -or $process.SafeHandle.IsClosed -or $process.SafeHandle.IsInvalid -or $process.HasExited){throw 'Retained screenshot consumer is unavailable.'}
     if((Get-CutQuayProcessPackageName $process) -cne $State.ownedPackageFullName -or
-        (Get-CanonicalPath (Get-CutQuayProcessImageName $process)) -ine (Get-CanonicalPath (Join-Path $State.installed.InstallLocation 'CutQuay.exe'))){throw 'Retained screenshot consumer identity differs.'}
-    $null=Assert-FileMatchesRecord (Join-Path $State.installed.InstallLocation 'CutQuay.exe') (Get-RecordPayloadEntry $State.record 'CutQuay.exe') 'Screenshot consumer'
+        (Get-CanonicalPath (Get-CutQuayProcessImageName $process)) -ine (Get-CanonicalPath (Join-Path $State.installed.InstallLocation 'Cliptern.exe'))){throw 'Retained screenshot consumer identity differs.'}
+    $null=Assert-FileMatchesRecord (Join-Path $State.installed.InstallLocation 'Cliptern.exe') (Get-RecordPayloadEntry $State.record 'Cliptern.exe') 'Screenshot consumer'
 }
 
 function Set-MarketingWindow($State){
@@ -156,7 +156,7 @@ function Invoke-MarketingUi($State,[string]$Phase,[string]$Media,[double]$Durati
         $portPath=Join-Path $profile 'DevToolsActivePort'
         if(Test-Path $portPath){$null=Get-WorkflowFileRecord $portPath;$lines=@(Get-Content $portPath)}
     }until(($process.MainWindowHandle -ne 0 -and $lines.Count -eq 2) -or [DateTime]::UtcNow -ge $deadline)
-    if($process.MainWindowHandle -eq 0 -or $process.MainWindowTitle -cne 'CutQuay' -or $lines.Count -ne 2 -or $lines[0] -notmatch '^\d{1,5}$' -or [int]$lines[0] -notin 1024..65535 -or $lines[1] -notmatch '^/devtools/browser/[A-Za-z0-9-]+$'){throw 'Actual screenshot window/listener did not become ready.'}
+    if($process.MainWindowHandle -eq 0 -or $process.MainWindowTitle -cne 'Cliptern' -or $lines.Count -ne 2 -or $lines[0] -notmatch '^\d{1,5}$' -or [int]$lines[0] -notin 1024..65535 -or $lines[1] -notmatch '^/devtools/browser/[A-Za-z0-9-]+$'){throw 'Actual screenshot window/listener did not become ready.'}
     $port=[int]$lines[0];Assert-WorkflowListener $port $process.Id
     Write-NewUtf8Json (Join-Path $directory 'display.json') (Set-MarketingWindow $State)
     $nonce=[guid]::NewGuid().ToString('N')

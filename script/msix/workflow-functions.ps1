@@ -102,7 +102,7 @@ function Get-WorkflowModules([Collections.IDictionary]$State) {
             $rows.Add([ordered]@{process_id=$process.Id;path=$file;relative_path=$relative;origin=$origin;sha256=$hash})
         }
     }
-    if(-not @($rows|Where-Object relative_path -CEQ 'CutQuay.exe').Count){throw 'Workflow module snapshot lacks installed consumer executable.'}
+    if(-not @($rows|Where-Object relative_path -CEQ 'Cliptern.exe').Count){throw 'Workflow module snapshot lacks installed consumer executable.'}
     return @($rows)
 }
 function ConvertTo-WorkflowArgument([string]$Value) {
@@ -128,9 +128,9 @@ function Invoke-WorkflowUiSession([Collections.IDictionary]$State,[object]$Reque
     try {
         $null=$process.Handle
         if($process.HasExited -or $process.StartTime.ToUniversalTime() -lt $started){throw 'Workflow broker did not create a fresh process.'}
-        if((Get-CanonicalPath $process.MainModule.FileName) -ine (Get-CanonicalPath (Join-Path $State.installed.InstallLocation 'CutQuay.exe'))){throw 'Workflow broker executable is outside exact installed path.'}
+        if((Get-CanonicalPath $process.MainModule.FileName) -ine (Get-CanonicalPath (Join-Path $State.installed.InstallLocation 'Cliptern.exe'))){throw 'Workflow broker executable is outside exact installed path.'}
         if((Get-CutQuayProcessPackageName $process) -cne [string]$State.installed.PackageFullName){throw 'Workflow broker package identity mismatch.'}
-        $null=Assert-FileMatchesRecord $process.MainModule.FileName (Get-RecordPayloadEntry $State.record 'CutQuay.exe') 'Workflow consumer executable'
+        $null=Assert-FileMatchesRecord $process.MainModule.FileName (Get-RecordPayloadEntry $State.record 'Cliptern.exe') 'Workflow consumer executable'
         $State.ownedProcesses.Add($process);$State.process=$process
     } catch {$process.Dispose();throw}
     $deadline=[DateTime]::UtcNow.AddSeconds(45)
@@ -141,7 +141,7 @@ function Invoke-WorkflowUiSession([Collections.IDictionary]$State,[object]$Reque
         if($process.HasExited){throw 'Workflow consumer exited at startup.'}
         if(Test-Path -LiteralPath $activePort){$null=Get-WorkflowFileRecord $activePort;$lines=@(Get-Content -LiteralPath $activePort)}
     }until(($process.MainWindowHandle -ne 0 -and $lines.Count -eq 2) -or [DateTime]::UtcNow -ge $deadline)
-    if($process.MainWindowHandle -eq 0 -or $process.MainWindowTitle -cne 'CutQuay'){throw 'Workflow consumer main window is missing or incorrect.'}
+    if($process.MainWindowHandle -eq 0 -or $process.MainWindowTitle -cne 'Cliptern'){throw 'Workflow consumer main window is missing or incorrect.'}
     if($lines.Count -ne 2 -or $lines[0] -notmatch '^\d{1,5}$' -or [int]$lines[0] -notin 1024..65535 -or $lines[1] -notmatch '^/devtools/browser/[A-Za-z0-9-]+$'){throw 'Malformed owned DevToolsActivePort file.'}
     $port=[int]$lines[0];Assert-WorkflowListener $port $process.Id
     $uiDirectory=Join-Path $State.output ('workflow-'+$Request.phase)

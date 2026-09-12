@@ -1,3 +1,5 @@
+import './bootstrapAppIdentity.js';
+
 process.traceDeprecation = true;
 process.traceProcessWarnings = true;
 
@@ -26,7 +28,6 @@ import logger from './logger.js';
 import menu from './menu.js';
 import * as configStore from './configStore.js';
 import { isLinux, isWindows, isMac, platform, arch, pathExists } from './util.js';
-import { appName } from './common.js';
 import attachContextMenu from './contextMenu.js';
 import HttpServer from './httpServer.js';
 import isDev from './isDev.js';
@@ -51,15 +52,6 @@ app.commandLine.appendSwitch('enable-blink-features', 'AudioVideoTracks');
 
 remote.initialize();
 
-
-app.name = appName;
-
-if (isWindows) {
-  // in order to set the title on OS notifications on Windows, this needs to be set to app.name
-  // https://github.com/mifi/lossless-cut/pull/2139
-  // https://stackoverflow.com/a/65863174/6519037
-  app.setAppUserModelId(app.name);
-}
 
 let filesToOpen: string[] = [];
 
@@ -300,7 +292,7 @@ const readyPromise = app.whenReady();
 
 async function init() {
   try {
-    logger.info('CutQuay version', app.getVersion(), { isDev });
+    logger.info('Cliptern version', app.getVersion(), { isDev });
     await configStore.init({ customConfigDir: argv['configDir'] });
     logger.info('Initialized config store');
 

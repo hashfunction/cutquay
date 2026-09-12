@@ -1,4 +1,4 @@
-name: CutQuay real product screenshots
+name: Cliptern real product screenshots
 on:
   workflow_dispatch:
 permissions:
@@ -46,7 +46,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CutQuay-real-product-screenshots
+          name: Cliptern-real-product-screenshots
           path: |
             build-evidence/marketing/**/*.png
             build-evidence/marketing/**/*.json

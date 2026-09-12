@@ -52,7 +52,7 @@ export default function useExportReports() {
       ...(error !== undefined ? { error: error instanceof Error ? error.message : String(error) } : {}),
     });
     const primaryOutput = finished.outputs.find((item) => item.status === 'created')?.path;
-    const filename = `${basename(primaryOutput ?? report.run.sources[0] ?? 'export')}.${report.run.runId}.cutquay-report.json`;
+    const filename = `${basename(primaryOutput ?? report.run.sources[0] ?? 'export')}.${report.run.runId}.cliptern-report.json`;
     const path = join(report.directory, filename);
     try {
       await mainApi.writeExportReport({ path, report: finished });

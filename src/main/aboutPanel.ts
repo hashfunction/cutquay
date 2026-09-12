@@ -15,7 +15,7 @@ export function getAboutPanelOptions() {
 
   const aboutPanelLines = [
     homepageUrl,
-    'CutQuay © 2026 Trieflow LLC',
+    'Cliptern © 2026 Trieflow LLC',
     'Based on LosslessCut; GPL-2.0-only',
     '',
     `${t('Copyright')} © 2016-${copyrightYear} Mikael Finstad ❤️ 🇳🇴`,

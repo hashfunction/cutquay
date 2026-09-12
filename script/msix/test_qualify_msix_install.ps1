@@ -80,12 +80,12 @@ $noisy = Invoke-CutQuayQualificationCore $operations
 Assert-True ($noisy -isnot [array] -and $noisy.installation_qualification_passed) 'noisy success must return one passing result'
 
 $packageRoot = Join-Path ([IO.Path]::GetTempPath()) 'package'
-$insidePackage = Test-PathInside -Candidate (Join-Path $packageRoot 'CutQuay.exe') -Root $packageRoot
+$insidePackage = Test-PathInside -Candidate (Join-Path $packageRoot 'Cliptern.exe') -Root $packageRoot
 $siblingPackage = Test-PathInside -Candidate (Join-Path ([IO.Path]::GetTempPath()) 'package-other/foreign.dll') -Root $packageRoot
 Assert-True $insidePackage 'exact package descendant must be accepted'
 Assert-True (-not $siblingPackage) 'textual sibling prefix must not count as package path'
-$recordFixture = [pscustomobject]@{ payload = [pscustomobject]@{ 'CutQuay.exe' = [pscustomobject]@{ bytes=1; sha256=('a' * 64) } } }
-Assert-True ((Get-RecordPayloadEntry $recordFixture 'CutQuay.exe').bytes -eq 1) 'slash-qualified payload property must resolve exactly'
+$recordFixture = [pscustomobject]@{ payload = [pscustomobject]@{ 'Cliptern.exe' = [pscustomobject]@{ bytes=1; sha256=('a' * 64) } } }
+Assert-True ((Get-RecordPayloadEntry $recordFixture 'Cliptern.exe').bytes -eq 1) 'slash-qualified payload property must resolve exactly'
 $exclusiveDirectory = Join-Path ([IO.Path]::GetTempPath()) ('cutquay-ps-test-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $exclusiveDirectory | Out-Null
 try {

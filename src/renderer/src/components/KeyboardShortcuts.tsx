@@ -750,7 +750,7 @@ const KeyboardShortcuts = memo(({
         category: otherCategory,
       },
       quit: {
-        name: t('Quit CutQuay'),
+        name: t('Quit Cliptern'),
         category: otherCategory,
       },
     };

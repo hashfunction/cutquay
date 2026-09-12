@@ -1,4 +1,8 @@
-# Installed CutQuay trim/export qualification
+# Installed Cliptern trim/export qualification
+
+Cliptern 1.0.1 retains this consumer flow with renamed executable/title/report
+expectations. The historical implementation and Windows observations below keep
+their original identities; a fresh renamed Windows run is required.
 
 This extends the approved Task 4 Windows acceptance with a focused consumer UI
 workflow. The application source and packaged payload are unchanged. The existing

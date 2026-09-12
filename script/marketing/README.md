@@ -1,4 +1,14 @@
-# Real CutQuay product screenshots
+# Cliptern product screenshot handoff
+
+Capture is deliberately blocked until a fresh Cliptern 1.0.1.0 package passes the
+complete Windows qualification and its exact source/run/package/artifact bindings
+are independently reviewed. The fixed values below describe historical CutQuay
+evidence and have not been relabeled. `assert_current_capture_binding` refuses
+before package downloads or output creation; the installer also independently
+requires the new executable/version. Update all exact bindings together after
+new qualification, then capture real Cliptern UI. No old pixels are edited.
+
+## Historical CutQuay capture inputs
 
 Dispatch `.github/workflows/marketing-screenshots.yml` after independent review. This workflow downloads the existing qualified Store artifact from run `34671595408`; it does not rebuild the app, change qualification, submit anything, or interact with certification. The unsigned package must remain exactly 260,378,673 bytes with SHA-256 `bfaed1c545107b948e9e240b5041f197548bf8b83179c12c70f27b1d262b40b3`.
 

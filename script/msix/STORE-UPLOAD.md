@@ -3,7 +3,7 @@
 The default qualification identity continues through the existing installation,
 consumer workflow, close and ownership-aware cleanup gates. It exports metadata
 only. Store identity uses the same gates, then calls `export_store_package.py`.
-The exporter creates only `build-evidence/store-upload/CutQuay_1.0.0.0_x64.msix`
+The exporter creates only `build-evidence/store-upload/Cliptern_1.0.1.0_x64.msix`
 and `release-ready.json`. The workflow uploads exactly those two files only when
 all preceding steps succeed. Temporary signed copies, certificates and keys are
 outside this artifact path.
@@ -29,8 +29,11 @@ to the canonical source page and fixed source release. The source manifest and
 publication record are also normal resource files outside ASAR, verified against
 `Release/` source bytes and included in the exact package inventory.
 
-No provisional source manifest authorizes export. Root supplies these finalized,
-reviewed files after source publication:
+The existing finalized native-source publication remains byte-identical to its
+public archive. It retains the historical CutQuay product/source-page fields and
+archive names because the native dependencies have not changed. The Cliptern
+application and current notice use the new canonical domain. No provisional or
+relabeled historical source manifest authorizes export:
 
 - `Release/native-source-manifest.json`: exact bytes of published `source-manifest.json`.
 - `Release/native-source-publication.json`: schema version 1; `product: CutQuay`;

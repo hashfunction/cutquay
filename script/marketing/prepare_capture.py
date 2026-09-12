@@ -66,6 +66,7 @@ def film(destination):
 
 
 def main(output,qualified):
+    checks.assert_current_capture_binding()
     checks.require(sys.platform=='win32' and os.environ.get('CI')=='true'
         and os.environ.get('GITHUB_REPOSITORY')=='hashfunction/cutquay','Screenshot inputs require isolated CutQuay Windows CI')
     commit=subprocess.check_output(['git','-C',str(qualified),'rev-parse','HEAD'],text=True).strip()

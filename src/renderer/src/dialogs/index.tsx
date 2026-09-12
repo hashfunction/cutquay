@@ -59,7 +59,7 @@ export async function askForInputDir(defaultPath?: string | undefined) {
     properties: ['openDirectory', 'createDirectory'],
     defaultPath: defaultPath!,
     title: i18n.t('Please confirm folder'),
-    message: i18n.t('Press confirm to grant CutQuay access to write the project file (due to App Sandbox restrictions).'),
+    message: i18n.t('Press confirm to grant Cliptern access to write the project file (due to App Sandbox restrictions).'),
     buttonLabel: i18n.t('Confirm'),
   });
   return (filePaths && filePaths.length === 1) ? filePaths[0] : undefined;
@@ -532,7 +532,7 @@ export async function promptDownloadMediaUrl(outPath: string) {
     title: i18n.t('Open media from URL'),
     input: 'text',
     inputPlaceholder: 'https://example.com/video.m3u8',
-    text: i18n.t('Losslessly download a whole media file from the specified URL, mux it into an mkv file and open it in CutQuay. This can be useful if you need to download a video from a website, e.g. a HLS streaming video. For example in Chrome you can open Developer Tools and view the network traffic, find the playlist (e.g. m3u8) and copy paste its URL here.'),
+    text: i18n.t('Losslessly download a whole media file from the specified URL, mux it into an mkv file and open it in Cliptern. This can be useful if you need to download a video from a website, e.g. a HLS streaming video. For example in Chrome you can open Developer Tools and view the network traffic, find the playlist (e.g. m3u8) and copy paste its URL here.'),
     showCancelButton: true,
   });
 
@@ -585,7 +585,7 @@ export function toastError(err: unknown) {
 export function mustDisallowVob() {
   // Because Apple is being nazi about the ability to open "copy protected DVD files"
   if (isMasBuild) {
-    getSwal().toast.fire({ icon: 'error', text: 'Unfortunately .vob files are not supported in the App Store version of CutQuay due to Apple restrictions' });
+    getSwal().toast.fire({ icon: 'error', text: 'Unfortunately .vob files are not supported in the App Store version of Cliptern due to Apple restrictions' });
     return true;
   }
   return false;

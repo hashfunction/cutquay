@@ -8,7 +8,7 @@ New-Item -ItemType Directory -Path $temporary | Out-Null
 function New-IdentityFixture([string]$Mode) {
     $identity=[ordered]@{
         packageName='Trieflow.CutQuay.Qualification';publisher='CN=CutQuay-CI-Qualification';publisherDisplayName='Trieflow LLC'
-        version='1.0.0.0';architecture='x64';applicationId='CutQuay';executable='CutQuay.exe'
+        version='1.0.1.0';architecture='x64';applicationId='CutQuay';executable='Cliptern.exe'
         deviceFamily='Windows.Desktop';minVersion='10.0.19041.0';maxVersionTested='10.0.26100.0';capability='runFullTrust'
     }
     if ($Mode -ceq 'store') {
@@ -17,7 +17,7 @@ function New-IdentityFixture([string]$Mode) {
         $identity.publisherDisplayName='hashfunction'
     }
     $manifest=@"
-<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"><Identity Name="$($identity.packageName)" Publisher="$($identity.publisher)" Version="1.0.0.0" ProcessorArchitecture="x64"/><Properties><PublisherDisplayName>$($identity.publisherDisplayName)</PublisherDisplayName></Properties><Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0"/></Dependencies><Applications><Application Id="CutQuay" Executable="CutQuay.exe" EntryPoint="Windows.FullTrustApplication"/></Applications><Capabilities><rescap:Capability Name="runFullTrust"/></Capabilities></Package>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"><Identity Name="$($identity.packageName)" Publisher="$($identity.publisher)" Version="1.0.1.0" ProcessorArchitecture="x64"/><Properties><PublisherDisplayName>$($identity.publisherDisplayName)</PublisherDisplayName></Properties><Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0"/></Dependencies><Applications><Application Id="CutQuay" Executable="Cliptern.exe" EntryPoint="Windows.FullTrustApplication"/></Applications><Capabilities><rescap:Capability Name="runFullTrust"/></Capabilities></Package>
 "@
     return @{manifest=$manifest;record=[pscustomobject]@{
         schemaVersion=1;sourceCommit=('a'*40);identityMode=$Mode;identity=[pscustomobject]$identity
@@ -75,7 +75,7 @@ try {
         $otherFixture=New-IdentityFixture $other
         $otherPackage=Write-ManifestPackage $otherFixture.manifest
         Assert-Rejected {Assert-CutQuayPackageIdentity $fixture.record $otherPackage $mode} 'manifest mode confusion with unchanged record'
-        foreach ($before in @($fixture.record.identity.packageName,$fixture.record.identity.publisher,$fixture.record.identity.publisherDisplayName,'1.0.0.0','x64','Id="CutQuay"','CutQuay.exe','Windows.FullTrustApplication','Windows.Desktop','10.0.19041.0','10.0.26100.0','runFullTrust')) {
+        foreach ($before in @($fixture.record.identity.packageName,$fixture.record.identity.publisher,$fixture.record.identity.publisherDisplayName,'1.0.1.0','x64','Id="CutQuay"','Cliptern.exe','Windows.FullTrustApplication','Windows.Desktop','10.0.19041.0','10.0.26100.0','runFullTrust')) {
             $replacement=if ($before -ceq 'Id="CutQuay"') {'Id="Other"'} else {'wrong'}
             $changedPackage=Write-ManifestPackage $fixture.manifest.Replace($before,$replacement)
             Assert-Rejected {Assert-CutQuayPackageIdentity $fixture.record $changedPackage $mode} "mutated manifest $before"

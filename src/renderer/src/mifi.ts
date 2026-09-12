@@ -27,7 +27,7 @@ export async function runStartupCheck({ onError }: { onError: (error: { title: s
             '',
             getFfmpegPath(),
             '',
-            i18n.t('Read more: {{url}}', { url: 'https://cutquay.trieflow.com/support' }),
+            i18n.t('Read more: {{url}}', { url: 'https://cliptern.trieflow.com/support' }),
           ].join('\n'),
         });
         return undefined;

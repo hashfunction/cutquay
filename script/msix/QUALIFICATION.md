@@ -1,4 +1,4 @@
-# CutQuay MSIX identity and installation qualification
+# Cliptern MSIX identity and installation qualification
 
 Implements `docs/plans/cutquay-msix-qualification.md` in the parent project, extending approved Task 4. Product baseline: `c7998d88706cd6cf1bcbbdd4d79f67ca528b46d5`. This changes packaging/qualification only; it does not open the existing production Store license gate or change dependencies.
 
@@ -8,8 +8,8 @@ Implements `docs/plans/cutquay-msix-qualification.md` in the parent project, ext
 additional `-IdentityMode store` selects only the reserved identity
 `1659hashfunction.CutQuay`, publisher
 `CN=B6A2631A-FD32-45CC-AE12-82466975F528`, and PublisherDisplayName `hashfunction`.
-Both modes use version `1.0.0.0`, x64, application ID `CutQuay`, executable
-`CutQuay.exe`, and Windows.Desktop. Arbitrary identities and mode spellings are
+Both modes use version `1.0.1.0`, x64, application ID `CutQuay`, executable
+`Cliptern.exe`, and Windows.Desktop. Arbitrary identities and mode spellings are
 rejected. The Python builder exposes the same selection as `--identity-mode`;
 manifest, container and unpacked verification all require the explicit mode.
 
@@ -25,9 +25,11 @@ remain mandatory in both modes.
 Windows runs Store identity qualification only after the disposable identity
 step succeeds. Store metadata is separate: `msix-store-package-record.json` and
 `msix-store-install/` under `build-evidence`. The unsigned Store-mode output is
-named `CutQuay.Store_1.0.0.0_x64.msix` and remains in the runner's temporary tree.
-The upload allowlist contains metadata and screenshots only; neither unsigned
-nor signed packages, binaries, media files, or certificates are uploaded.
+named `Cliptern.Store_1.0.1.0_x64.msix` and remains in the runner's temporary tree.
+The current Store-upload gate in `STORE-UPLOAD.md` retains exactly the verified
+unsigned Cliptern package and readiness receipt after all checks pass. Signed
+copies, media and certificates are excluded; qualification artifacts contain
+metadata/screenshots only.
 
 Package records state `identityMode`, `qualificationIdentityOnly`, and
 `storeIdentityUsed`. Installer evidence states the selected `identity_mode` and
@@ -38,11 +40,11 @@ obligations, WACK, upgrade and Store submission remain separate gates.
 
 ## Exact scope and inputs
 
-- Fixed disposable identity: `Trieflow.CutQuay.Qualification`, publisher `CN=CutQuay-CI-Qualification`, version `1.0.0.0`, x64, AUMID application `CutQuay`, root executable `CutQuay.exe`. Exactly one full-trust application and `runFullTrust`; no protocols, associations or COM declarations.
+- Fixed disposable identity: `Trieflow.CutQuay.Qualification`, publisher `CN=CutQuay-CI-Qualification`, version `1.0.1.0`, x64, AUMID application `CutQuay`, root executable `Cliptern.exe`. Exactly one full-trust application and `runFullTrust`; no protocols, associations or COM declarations.
 - Existing native build runs first, with immutable Yarn 4.11.0, Electron 42.11.3 and electron-builder 26.15.3 from the unchanged lock. The baseline startup receipt binds source SHA, executable SHA, exact unpacked title and generated dependency-notice SHA. Its source must be clean before building.
 - `prepare-electron-input.cjs` uses the locked `@electron/get` and official version-specific Electron release/checksum URLs. It independently verifies the retained ZIP against that release's exact checksum. This is an exact version plus upstream checksum acquisition, not a hard-coded archive digest; the actual digest, checksum-file digest, URL and all runtime file hashes become immutable package evidence. No mirror can evade the official checksum comparison.
 - `inspect-asar.cjs` uses locked `@electron/asar` to inspect the actual archive without executing app code. It rejects links/unsafe entries, verifies application metadata, entry/renderer bytes and six embedded notices against build/source inputs, records every ASAR entry and unpacked file, and regenerates the original SVG with the actual Sharp settings to verify the provided PNG.
-- The complete `dist/win-unpacked` file set is inventoried. Electron archive members must match exactly, except the documented builder transformations: renamed/resource-edited `electron.exe` becomes the separately native-startup-bound `CutQuay.exe`; `LICENSE` becomes `LICENSE.electron.txt`; `version` and `resources/default_app.asar` are builder-removed. All Electron runtime DLL/data/locale/notice bytes are checked against the exact archive.
+- The complete `dist/win-unpacked` file set is inventoried. Electron archive members must match exactly, except the documented builder transformations: renamed/resource-edited `electron.exe` becomes the separately native-startup-bound `Cliptern.exe`; `LICENSE` becomes `LICENSE.electron.txt`; `version` and `resources/default_app.asar` are builder-removed. All Electron runtime DLL/data/locale/notice bytes are checked against the exact archive.
 - The verifier requires the exact approved set of nine `bin/` media paths independently of the pin. All nine selected `Release/ffmpeg-build.json` FFmpeg/FFprobe/native DLL rows, their sizes/hashes, external FFmpeg notice and complete application locale tree must match. Any other staged file is rejected, including an unlisted native executable. ASAR contents/dependencies remain bound by the actual archive and source/lock hashes; this is not a corresponding-source license audit.
 - `licenses.txt` is deliberately generated by the existing native build. If generation changes that tracked file, it is the only permitted dirty path and must equal the same-source native receipt. Every other source change is rejected. Its actual generated bytes and SHA are recorded inside the package's application input evidence.
 
@@ -56,7 +58,7 @@ The installer refuses an existing matching registration. It signs a separate tem
 
 Installed startup uses the package-family AUMID through `IApplicationActivationManager`. The broker PID must report the exact package full name through the actual two-call `GetPackageFullName` API and load the exact installed main executable. Main and discovered Electron child processes are bound to retained process handles, installed executable path, actual package identity and creation time after this install; no name-only cleanup is allowed. Loaded modules for the retained live Electron processes must come from verified package payloads or Windows. Discovery is a bounded snapshot, not a claim of exhaustive tracing of every transient process/module.
 
-The exact installed title is **CutQuay**, while unpacked title is **CutQuay 1.0.0**. Existing `src/renderer/src/util.ts` uses the app name without a version when `process.windowsStore` is true; Electron documents that it is true for **any MSIX package** ([Electron process documentation](https://www.electronjs.org/docs/latest/api/process)). The prior unpacked run `34576772812` does not establish an installed title or package identity.
+The exact installed title is **Cliptern**, while unpacked title is **Cliptern 1.0.1**. Existing `src/renderer/src/util.ts` uses the app name without a version when `process.windowsStore` is true; Electron documents that it is true for **any MSIX package** ([Electron process documentation](https://www.electronjs.org/docs/latest/api/process)). The prior unpacked run `34576772812` does not establish an installed title or package identity.
 
 A direct installed diagnostic startup captures stderr, checks actual package identity, rejects fatal/JavaScript error diagnostics, and closes normally before broker startup. Broker startup checks visible UI bounds, accessible elements/controls where exposed, error surfaces, a mandatory screenshot and stable main window. Missing accessible controls are explicitly `startup_limited`; no workflow or accessibility acceptance is inferred. Installed `resources/ffmpeg.exe` and `resources/ffprobe.exe` each run `-version` and `-buildconf`, with bounded waits, before/after executable hashes and exact pinned version/configuration comparisons. Version invocations do not establish media workflows.
 

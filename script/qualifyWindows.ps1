@@ -33,17 +33,17 @@ Run-Yarn @('generate-licenses')
 $noticeHash = (Get-FileHash licenses.txt -Algorithm SHA256).Hash.ToLowerInvariant()
 $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
 Run-Yarn @('pack-win-dir')
-$executable = (Resolve-Path 'dist/win-unpacked/CutQuay.exe').Path
+$executable = (Resolve-Path 'dist/win-unpacked/Cliptern.exe').Path
 $process = Start-Process $executable -PassThru
 try {
   $deadline = (Get-Date).AddSeconds(45)
   do {
     Start-Sleep -Milliseconds 500
     $process.Refresh()
-    if ($process.HasExited) { throw "CutQuay exited during startup: $($process.ExitCode)" }
-  } until (($process.MainWindowHandle -ne 0 -and $process.MainWindowTitle -ceq 'CutQuay 1.0.0') -or (Get-Date) -gt $deadline)
-  if ($process.MainWindowHandle -eq 0) { throw 'No CutQuay native main window appeared.' }
-  if ($process.MainWindowTitle -cne 'CutQuay 1.0.0') { throw "Unexpected native startup title: $($process.MainWindowTitle)" }
+    if ($process.HasExited) { throw "Cliptern exited during startup: $($process.ExitCode)" }
+  } until (($process.MainWindowHandle -ne 0 -and $process.MainWindowTitle -ceq 'Cliptern 1.0.1') -or (Get-Date) -gt $deadline)
+  if ($process.MainWindowHandle -eq 0) { throw 'No Cliptern native main window appeared.' }
+  if ($process.MainWindowTitle -cne 'Cliptern 1.0.1') { throw "Unexpected native startup title: $($process.MainWindowTitle)" }
   @{ generated_notices_sha256=$noticeHash; source_commit=$env:GITHUB_SHA; workflow_run_id=$env:GITHUB_RUN_ID; workflow_run_attempt=$env:GITHUB_RUN_ATTEMPT; generated_at_utc=[DateTime]::UtcNow.ToString('o'); windows_native_startup=$true; executable_sha256=(Get-FileHash $executable -Algorithm SHA256).Hash; window_title=$process.MainWindowTitle; ffmpeg_version=$pin.version; native_source_clearance=$false; interactive_acceptance=$false; msix_built=$false; submitted=$false } | ConvertTo-Json | Set-Content build-evidence/windows-startup.json -Encoding utf8NoBOM
 } finally {
   if (-not $process.HasExited) {

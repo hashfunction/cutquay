@@ -491,7 +491,7 @@ export default ({ app, mainWindow, newVersion, isStoreBuild, openExternal }: {
           label: esc(t('Licenses')),
           click() { openExternal(licensesUrl); },
         },
-        ...(process.platform !== 'darwin' ? [{ role: 'about' as const, label: esc(t('About CutQuay')) }] : []),
+        ...(process.platform !== 'darwin' ? [{ role: 'about' as const, label: esc(t('About Cliptern')) }] : []),
       ],
     },
   ];

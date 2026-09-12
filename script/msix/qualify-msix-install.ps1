@@ -1,4 +1,4 @@
-# Disposable Windows CI installation qualification for CutQuay.
+# Disposable Windows CI installation qualification for Cliptern.
 # Copyright 2026 Trieflow LLC. MIT licensed.
 # Installation-flow structure adapted from ReticleQuay's MIT helper; the full
 # retained notice is in RETICLEQUAY-MIT.txt.
@@ -21,7 +21,7 @@ function Get-CutQuayExpectedIdentity([string]$IdentityMode='qualification') {
     # Deliberately independent of the package builder and its input record.
     $identity=[ordered]@{
         packageName='Trieflow.CutQuay.Qualification';publisher='CN=CutQuay-CI-Qualification';publisherDisplayName='Trieflow LLC'
-        version='1.0.0.0';architecture='x64';applicationId='CutQuay';executable='CutQuay.exe'
+        version='1.0.1.0';architecture='x64';applicationId='CutQuay';executable='Cliptern.exe'
         deviceFamily='Windows.Desktop';minVersion='10.0.19041.0';maxVersionTested='10.0.26100.0';capability='runFullTrust'
     }
     if ($IdentityMode -ceq 'store') {
@@ -93,7 +93,7 @@ function Assert-CutQuayPackageAbsent([Collections.IDictionary]$State, [string]$I
     $expected=Get-CutQuayExpectedIdentity $IdentityMode
     $existing=@(Get-AppxPackage -Name $expected.packageName -ErrorAction Stop)
     $State.preflightPackageFullNames=@($existing | ForEach-Object {[string]$_.PackageFullName})
-    if ($existing.Count -gt 0) { throw 'A matching CutQuay package is already installed; refusing to replace or remove it.' }
+    if ($existing.Count -gt 0) { throw 'A matching Cliptern package is already installed; refusing to replace or remove it.' }
 }
 
 function Invoke-CutQuayQualificationCore([Collections.IDictionary]$Operations) {
@@ -326,11 +326,11 @@ function Update-OwnedPackageProcesses([Collections.IDictionary]$State) {
     # Electron processes created since that install, with its actual package
     # identity, may be retained/terminated. Keep process handles against PID reuse.
     Add-CutQuayActivationTypes
-    foreach ($candidate in @(Get-Process -Name CutQuay -ErrorAction SilentlyContinue)) {
+    foreach ($candidate in @(Get-Process -Name Cliptern -ErrorAction SilentlyContinue)) {
         try {
             $null = $candidate.Handle
             if ($candidate.HasExited) { continue }
-            if ((Get-CanonicalPath $candidate.MainModule.FileName) -ine (Get-CanonicalPath (Join-Path $State.installed.InstallLocation 'CutQuay.exe'))) { continue }
+            if ((Get-CanonicalPath $candidate.MainModule.FileName) -ine (Get-CanonicalPath (Join-Path $State.installed.InstallLocation 'Cliptern.exe'))) { continue }
             if ($candidate.StartTime.ToUniversalTime() -lt $State.activationStarted) { throw 'A preexisting process occupies the owned package path.' }
             if ([CutQuayQualification.NativePackageProbe]::GetFullName($candidate.Handle) -cne [string]$State.installed.PackageFullName) { throw 'Owned-path process lacks expected package identity.' }
             if (-not @($State.ownedProcesses | Where-Object { $_.Id -eq $candidate.Id -and $_.StartTime -eq $candidate.StartTime }).Count) {
@@ -601,12 +601,12 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         $runnerTemp = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { [IO.Path]::GetTempPath() }
         $state.temporary = Join-Path $runnerTemp ('.cutquay-install-' + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $state.temporary -ErrorAction Stop | Out-Null
-        $state.signedCopy = Join-Path $state.temporary 'CutQuay.Qualification.signed.msix'
+        $state.signedCopy = Join-Path $state.temporary 'Cliptern.Qualification.signed.msix'
         [IO.File]::Copy($state.package, $state.signedCopy, $false)
-        $state.publicCertificate = Join-Path $state.temporary 'CutQuay.Qualification.public.cer'
+        $state.publicCertificate = Join-Path $state.temporary 'Cliptern.Qualification.public.cer'
         $state.certificate = New-SelfSignedCertificate -Type Custom -KeyUsage DigitalSignature -KeyExportPolicy NonExportable -KeySpec Signature `
             -CertStoreLocation 'Cert:\CurrentUser\My' -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3','2.5.29.19={text}') `
-            -Subject $expectedIdentity.publisher -FriendlyName 'CutQuay ephemeral CI qualification' -NotAfter (Get-Date).AddHours(12)
+            -Subject $expectedIdentity.publisher -FriendlyName 'Cliptern ephemeral CI qualification' -NotAfter (Get-Date).AddHours(12)
         Export-Certificate -Cert $state.certificate -FilePath $state.publicCertificate -Force | Out-Null
         $state.trustAttempted = $true
         $state.trustedCertificate = Import-Certificate -FilePath $state.publicCertificate -CertStoreLocation 'Cert:\LocalMachine\TrustedPeople'
@@ -658,7 +658,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
             $relative = $entry.Name
             $expected = Get-RecordPayloadEntry $state.record $relative
             $hash = Assert-FileMatchesRecord (Join-Path $state.installed.InstallLocation ($relative -replace '/', [IO.Path]::DirectorySeparatorChar)) $expected $relative
-            if ($relative -eq 'CutQuay.exe') { $state.executableSha256 = $hash }
+            if ($relative -eq 'Cliptern.exe') { $state.executableSha256 = $hash }
 
         }
     }.GetNewClosure()
@@ -671,7 +671,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         Add-CutQuayActivationTypes
         $stdoutPath = Join-Path $state.output 'installed-native-stdout.txt'
         $stderrPath = Join-Path $state.output 'installed-native-stderr.txt'
-        $executable = Join-Path $state.installed.InstallLocation 'CutQuay.exe'
+        $executable = Join-Path $state.installed.InstallLocation 'Cliptern.exe'
         $state.process = Start-Process -FilePath $executable -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru -ErrorAction Stop
         $null = $state.process.Handle
         $state.ownedProcesses.Add($state.process)
@@ -710,14 +710,14 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         do {
             Start-Sleep -Milliseconds 250
             $state.process.Refresh()
-            if ($state.process.HasExited) { throw "Activated CutQuay exited during startup: $($state.process.ExitCode)" }
+            if ($state.process.HasExited) { throw "Activated Cliptern exited during startup: $($state.process.ExitCode)" }
         } until ($state.process.MainWindowHandle -ne 0 -or [DateTime]::UtcNow -ge $deadline)
-        if ($state.process.MainWindowHandle -eq 0) { throw 'Activated CutQuay did not create a main window.' }
-        if ($state.record.runtime.application.expectedWindowTitle -cne 'CutQuay') { throw 'Unexpected source title contract.' }
+        if ($state.process.MainWindowHandle -eq 0) { throw 'Activated Cliptern did not create a main window.' }
+        if ($state.record.runtime.application.expectedWindowTitle -cne 'Cliptern') { throw 'Unexpected source title contract.' }
         if ($state.process.MainWindowTitle -cne $state.record.runtime.application.expectedWindowTitle) { throw "Unexpected activated main-window title: $($state.process.MainWindowTitle)" }
         $state.processPackageFullName = [CutQuayQualification.NativePackageProbe]::GetFullName($state.process.Handle)
         if ($state.processPackageFullName -cne [string]$state.installed.PackageFullName) { throw 'Activated process does not own the exact installed package full name.' }
-        if ((Get-CanonicalPath $state.process.MainModule.FileName) -ine (Get-CanonicalPath (Join-Path $state.installed.InstallLocation 'CutQuay.exe'))) { throw 'Broker returned an executable outside the exact installed main path.' }
+        if ((Get-CanonicalPath $state.process.MainModule.FileName) -ine (Get-CanonicalPath (Join-Path $state.installed.InstallLocation 'Cliptern.exe'))) { throw 'Broker returned an executable outside the exact installed main path.' }
         Update-OwnedPackageProcesses $state
         $installRoot = Get-CanonicalPath $state.installed.InstallLocation
         $windowsRoot = Get-CanonicalPath $env:SystemRoot
@@ -731,7 +731,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
                     $relative = $path.Substring($installRoot.Length).TrimStart('\','/').Replace('\','/')
                     $expected = Get-RecordPayloadEntry $state.record $relative
                     $hash = Assert-FileMatchesRecord $path $expected "Loaded module $relative"
-                    if ($relative -ceq 'CutQuay.exe') { $mainExecutableLoaded = $true }
+                    if ($relative -ceq 'Cliptern.exe') { $mainExecutableLoaded = $true }
                     $origin = 'package'
                 } elseif (Test-PathInside $path $windowsRoot) {
                     $relative = $null
@@ -743,7 +743,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
                 $modules.Add([ordered]@{ process_id=$ownedProcess.Id; name=$module.ModuleName; path=$path; origin=$origin; relative_path=$relative; sha256=$hash })
             }
         }
-        if (-not $mainExecutableLoaded) { throw 'Activated process did not load the exact installed CutQuay.exe.' }
+        if (-not $mainExecutableLoaded) { throw 'Activated process did not load the exact installed Cliptern.exe.' }
         $state.modules = @($modules)
         Write-NewUtf8Json (Join-Path $state.output 'loaded-modules.json') $state.modules
         $state.window = Get-WindowQualification $state.process $state.output
@@ -751,14 +751,14 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         if (-not $state.window.screenshot_captured) { throw ('Required startup screenshot failed: ' + $state.window.screenshot_error) }
         Start-Sleep -Seconds 3
         $state.process.Refresh()
-        if ($state.process.HasExited -or $state.process.MainWindowHandle -eq 0) { throw 'Activated CutQuay did not survive the stable-window interval.' }
+        if ($state.process.HasExited -or $state.process.MainWindowHandle -eq 0) { throw 'Activated Cliptern did not survive the stable-window interval.' }
     }.GetNewClosure()
 
     $operations.CloseCleanly = {
         Update-OwnedPackageProcesses $state
-        if (-not $state.process.CloseMainWindow()) { throw 'Activated CutQuay refused a normal main-window close request.' }
-        if (-not $state.process.WaitForExit(15000)) { throw 'Activated CutQuay did not exit after a normal close request.' }
-        if ($state.process.ExitCode -ne 0) { throw "Activated CutQuay exited with $($state.process.ExitCode) after normal close." }
+        if (-not $state.process.CloseMainWindow()) { throw 'Activated Cliptern refused a normal main-window close request.' }
+        if (-not $state.process.WaitForExit(15000)) { throw 'Activated Cliptern did not exit after a normal close request.' }
+        if ($state.process.ExitCode -ne 0) { throw "Activated Cliptern exited with $($state.process.ExitCode) after normal close." }
         Wait-OwnedPackageExit $state
         $state.cleanClose = $true
     }.GetNewClosure()
@@ -916,7 +916,7 @@ function Invoke-CutQuayInstallQualification([string]$PackagePath, [string]$Recor
         throw "Could not preserve qualification JSON: $($_.Exception.Message). Primary: $($result.primary_error); cleanup: $($result.cleanup_errors -join '; '); evidence: $($evidenceErrors -join '; ')"
     }
     if (-not $qualificationPassed) {
-        throw "CutQuay installation qualification failed. Primary: $($result.primary_error); cleanup: $($result.cleanup_errors -join '; '); evidence: $($evidenceErrors -join '; ')"
+        throw "Cliptern installation qualification failed. Primary: $($result.primary_error); cleanup: $($result.cleanup_errors -join '; '); evidence: $($evidenceErrors -join '; ')"
     }
     Write-Output 'PASS: broker-activated exact package, verified owned modules/window/close, uninstalled, and cleaned certificate state.'
 }

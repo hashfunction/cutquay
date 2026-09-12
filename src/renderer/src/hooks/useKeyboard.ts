@@ -11,7 +11,7 @@ import isDev from '../isDev';
 - Keyboard actions should not trigger when focus is inside a dialog, or when focusing inputs, switches etc.
 - Clicking on the video are or some empty portions of the app should focus the document body again (to allow keyboard shortcuts to work)
 - Test different keyboard layout: chinese, french. should work because the key code is the same.
-- Reset CutQuay settings (delete config.json file to get the default keyboard layout)
+- Reset Cliptern settings (delete config.json file to get the default keyboard layout)
 - Go to timecode (`g` shortcut): shouldn't insert the letter `g` into input box. This also applies to all the detect* actions
 - Seek (autorepeat) and acceleration factor should reset after keyup
 - Bind keyboard action dialog should not close when its key binding (shift+slash) is triggered

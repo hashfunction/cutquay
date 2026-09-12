@@ -21,18 +21,18 @@ class StoreExportTests(QualificationFixture):
         self.install = self.evidence / 'msix-store-install'
         self.install.mkdir(parents=True)
         self.run_id, self.attempt = '123456', '1'
-        self.package = self.root / 'CutQuay.Store_1.0.0.0_x64.msix'
+        self.package = self.root / 'Cliptern.Store_1.0.1.0_x64.msix'
         self.record = msix.stage_release(self.release, self.artwork, self.root / 'stage', self.commit,
             self.source, self.electron, self.checksums, 'store')
         self.write_package()
         self.record['containerVerification'] = msix.verify_msix(self.package, self.record['payload'], 'store')
         self.record['unpackedVerification'] = {'verifiedPayloadFiles': len(self.record['payload'])}
-        self.full_name = '1659hashfunction.CutQuay_1.0.0.0_x64__r3hxytd7jt6c4'
+        self.full_name = '1659hashfunction.CutQuay_1.0.1.0_x64__r3hxytd7jt6c4'
         self.workflow, self.workflow_records = workflow_fixture(self.source, self.commit,
             self.record['runtime'], self.record['payload'], self.full_name)
         self.native = {'source_commit':self.commit, 'workflow_run_id':self.run_id, 'workflow_run_attempt':self.attempt,
-            'windows_native_startup':True, 'window_title':'CutQuay 1.0.0',
-            'executable_sha256':self.record['payload']['CutQuay.exe']['sha256'].upper(),
+            'windows_native_startup':True, 'window_title':'Cliptern 1.0.1',
+            'executable_sha256':self.record['payload']['Cliptern.exe']['sha256'].upper(),
             'generated_notices_sha256':sha((self.source/'licenses.txt').read_bytes())}
         self.receipt = {'source_commit':self.commit, 'workflow_run_id':self.run_id, 'workflow_run_attempt':self.attempt,
             'identity_mode':'store', 'identity':msix.STORE_IDENTITY, 'qualification_identity_only':False,
@@ -122,7 +122,7 @@ class StoreExportTests(QualificationFixture):
 
     def test_coherent_package_receipts_cannot_replace_current_release_or_add_signing_material(self):
         original = copy.deepcopy(self.record)
-        for relative in ('CutQuay.exe', 'Assets/StoreLogo.png', 'temporary/private-key.pfx', 'AppxSignature.p7x'):
+        for relative in ('Cliptern.exe', 'Assets/StoreLogo.png', 'temporary/private-key.pfx', 'AppxSignature.p7x'):
             with self.subTest(relative=relative):
                 if self.output.exists(): shutil.rmtree(self.output)
                 self.record = copy.deepcopy(original)
@@ -232,7 +232,7 @@ class WorkflowEvidenceTests(unittest.TestCase):
         self.commit = '1'*40
         self.runtime = {'media': {'version': 'n8.1.2-fixture', 'configuration': '--enable-gpl --enable-shared --extra-version=20260910'}}
         self.payload = {name: {'bytes': 3, 'sha256': str(i)*64} for i, name in enumerate(
-            ('CutQuay.exe', 'resources/ffmpeg.exe', 'resources/ffprobe.exe'), 1)}
+            ('Cliptern.exe', 'resources/ffmpeg.exe', 'resources/ffprobe.exe'), 1)}
         self.workflow, self.records = workflow_fixture(self.source, self.commit, self.runtime, self.payload, export.PACKAGE_FULL_NAME)
         self.records['workflow-export/consumer-export-report.json']['effective']['ffmpegVersion'] += '-20260910'
         self.helpers = {name:export.digest((self.source/'script/msix'/name).read_bytes())['sha256']

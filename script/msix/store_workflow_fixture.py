@@ -63,8 +63,8 @@ def workflow_fixture(source, commit, runtime, payload, full_name):
                 '--user-data-dir='+work_root+'\\workflow-profile-'+phase, '--config-dir='+work_root+'\\workflow-config',
                 '--disable-networking']}
         records[f'workflow-{phase}/loaded-modules.json'] = [{'process_id': pid,
-            'path': package_root+'\\CutQuay.exe', 'origin': 'package', 'relative_path': 'CutQuay.exe',
-            'sha256': payload['CutQuay.exe']['sha256']}]
+            'path': package_root+'\\Cliptern.exe', 'origin': 'package', 'relative_path': 'Cliptern.exe',
+            'sha256': payload['Cliptern.exe']['sha256']}]
     for mode, key, pid in [('generate', 'generation_worker', 333), ('verify', 'verification_worker', 444)]:
         worker = {'process_id': pid, 'start_ticks': 600000000000000000+pid,
             'executable': r'C:\Program Files\PowerShell\7\pwsh.EXE', 'package_full_name': full_name,

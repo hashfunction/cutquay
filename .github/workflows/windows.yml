@@ -1,4 +1,4 @@
-name: CutQuay Windows qualification
+name: Cliptern Windows qualification
 on:
   workflow_dispatch:
   push:
@@ -30,9 +30,9 @@ jobs:
       - name: Retain verified unsigned Store package for submission
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CutQuay-Store-unsigned
+          name: Cliptern-Store-unsigned
           path: |
-            build-evidence/store-upload/CutQuay_1.0.0.0_x64.msix
+            build-evidence/store-upload/Cliptern_1.0.1.0_x64.msix
             build-evidence/store-upload/release-ready.json
           retention-days: 14
           if-no-files-found: error
@@ -40,7 +40,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: CutQuay-Windows-qualification
+          name: Cliptern-Windows-qualification
           path: |
             build-evidence/*.json
             build-evidence/*.txt

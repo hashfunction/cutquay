@@ -14,7 +14,7 @@ const { lstat } = window.require('node:fs/promises');
 
 
 // MacOS App Store sandbox doesn't allow reading/writing anywhere,
-// except those exact file paths that have been explicitly drag-dropped into CutQuay or opened using the opener dialog
+// except those exact file paths that have been explicitly drag-dropped into Cliptern or opened using the opener dialog
 // Therefore we set the flag com.apple.security.files.user-selected.read-write
 // With this flag, we can show the user an open-dialog for a **directory**, and once the user has opened that directory, we can read/write files in this directory until the app is restarted.
 // NOTE! fs.stat is still allowed everywhere, even though read/write is not

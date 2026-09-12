@@ -11,6 +11,13 @@ import capture_checks as checks
 
 
 class ArtifactTests(unittest.TestCase):
+    def test_rename_blocks_before_any_download_or_output_creation(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(prepare,'gh_json',side_effect=AssertionError('network called')),patch.object(prepare.subprocess,'check_output',side_effect=AssertionError('checkout read')):
+            output=Path(directory)/'output'
+            with self.assertRaisesRegex(ValueError,'await a newly qualified exact package'):
+                prepare.main(output,Path(directory)/'qualified')
+            self.assertFalse(output.exists())
+
     def run_archive(self,entries,*,members=None,limit=100000,change=None):
         buffer=io.BytesIO()
         with zipfile.ZipFile(buffer,'w',zipfile.ZIP_DEFLATED) as archive:
